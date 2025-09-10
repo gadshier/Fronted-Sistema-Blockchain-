@@ -1,19 +1,32 @@
 .lot-form-title {
-  @apply font-bold mb-4;
+  @apply text-2xl font-bold mb-4;
+}
+
+.lot-card {
+  @apply bg-gray-50 rounded-xl shadow p-6;
+}
+
+.form-grid {
+  @apply grid gap-y-4 md:grid-cols-2 md:gap-x-6;
+}
+
+.form-group {
+  @apply flex flex-col;
+}
+
+.lot-label {
+  @apply text-sm font-medium mb-1;
 }
 
 .lot-input {
-  @apply w-full border rounded-md px-3 py-2 mb-3;
+  @apply w-full border rounded-md px-3 py-2;
 }
 
-.series-container {
-  @apply flex items-center;
+.series-row {
+  @apply flex flex-col md:flex-row md:items-center md:space-x-2 space-y-2 md:space-y-0;
 }
 
 .generate-btn {
-  @apply bg-blue-600 text-white px-3 py-1 rounded-md ml-2 mb-3;
+  @apply bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors;
 }
 
-button {
-  @apply px-6 py-2 rounded-full bg-purple-600 text-white font-semibold shadow-md hover:bg-purple-700 transition-colors;
-}

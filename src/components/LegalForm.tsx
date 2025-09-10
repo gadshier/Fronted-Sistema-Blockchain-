@@ -1,4 +1,3 @@
-import React from "react";
 import "./LegalForm.css";
 
 export interface LegalData {
