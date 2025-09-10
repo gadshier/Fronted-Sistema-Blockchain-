@@ -6,6 +6,7 @@ import type { MedicineRegistryContract } from "./types/MedicineRegistry";
 import Navbar from "./components/Navbar";
 import LotForm, { LotData } from "./components/LotForm";
 import LegalForm, { LegalData } from "./components/LegalForm";
+import "./App.css";
 
 const CONTRACT_ADDRESS = "0x4E0fa35846Cf43E9e204C3744607aB66E33827e0"; // Dirección del contrato desplegado
 
@@ -79,10 +80,10 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="app-container">
       <Navbar onConnect={handleConnect} account={account} />
-      <div className="max-w-4xl mx-auto mt-8">
-        <div className="grid grid-cols-2 gap-6 p-6 border border-dashed border-blue-400 rounded-md bg-gray-50">
+      <div className="app-content">
+        <div className="form-wrapper">
           <LotForm
             data={lotData}
             onChange={handleLotChange}
@@ -90,10 +91,7 @@ function App() {
           />
           <LegalForm data={legalData} onChange={handleLegalChange} />
         </div>
-        <button
-          onClick={registrarLote}
-          className="mx-auto mt-6 px-6 py-2 border rounded-md bg-white hover:bg-gray-100 block"
-        >
+        <button onClick={registrarLote} className="submit-btn">
           Registrar Lote
         </button>
       </div>

@@ -1,4 +1,5 @@
 import React from "react";
+import "./LotForm.css";
 
 export interface LotData {
   medicineName: string;
@@ -17,34 +18,34 @@ interface LotFormProps {
 export default function LotForm({ data, onChange, onGenerateCode }: LotFormProps) {
   return (
     <div>
-      <h2 className="font-bold mb-4">Registro de Lote</h2>
+      <h2 className="lot-form-title">Registro de Lote</h2>
       <input
-        className="w-full border rounded-md px-3 py-2 mb-3"
+        className="lot-input"
         placeholder="Nombre del medicamento"
         value={data.medicineName}
         onChange={(e) => onChange("medicineName", e.target.value)}
       />
       <input
-        className="w-full border rounded-md px-3 py-2 mb-3"
+        className="lot-input"
         placeholder="Fabricante"
         value={data.manufacturer}
         onChange={(e) => onChange("manufacturer", e.target.value)}
       />
       <input
         type="date"
-        className="w-full border rounded-md px-3 py-2 mb-3"
+        className="lot-input"
         value={data.mfgDate}
         onChange={(e) => onChange("mfgDate", e.target.value)}
       />
       <input
         type="date"
-        className="w-full border rounded-md px-3 py-2 mb-3"
+        className="lot-input"
         value={data.expDate}
         onChange={(e) => onChange("expDate", e.target.value)}
       />
-      <div className="flex items-center">
+      <div className="series-container">
         <input
-          className="w-full border rounded-md px-3 py-2 mb-3"
+          className="lot-input"
           placeholder="Código único de serie"
           value={data.seriesCode}
           onChange={(e) => onChange("seriesCode", e.target.value)}
@@ -52,7 +53,7 @@ export default function LotForm({ data, onChange, onGenerateCode }: LotFormProps
         <button
           type="button"
           onClick={onGenerateCode}
-          className="bg-blue-600 text-white px-3 py-1 rounded-md ml-2 mb-3"
+          className="generate-btn"
         >
           Generar
         </button>

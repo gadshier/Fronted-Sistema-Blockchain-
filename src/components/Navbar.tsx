@@ -1,4 +1,5 @@
 import React from "react";
+import "./Navbar.css";
 
 interface NavbarProps {
   onConnect: () => void;
@@ -7,24 +8,24 @@ interface NavbarProps {
 
 export default function Navbar({ onConnect, account }: NavbarProps) {
   return (
-    <div className="flex justify-between items-center px-6 py-4 shadow-sm bg-white">
-      <div className="text-[#6C63FF] font-semibold">BlockFarm</div>
-      <nav className="flex gap-4">
-        <a href="#" className="text-purple-600 font-semibold border-b-2 border-purple-600">
+    <div className="navbar">
+      <div className="nav-logo">BlockFarm</div>
+      <nav className="nav-links">
+        <a href="#" className="nav-link-active">
           Registrar Lote
         </a>
-        <a href="#" className="text-gray-600">
+        <a href="#" className="nav-link">
           Otros
         </a>
       </nav>
       {account ? (
-        <span className="rounded-full border px-4 py-1">{account}</span>
+        <span className="session-account">{account}</span>
       ) : (
-        <div className="flex gap-2">
-          <button onClick={onConnect} className="rounded-full border px-4 py-1">
+        <div className="session-buttons">
+          <button onClick={onConnect} className="session-button">
             Iniciar sesión
           </button>
-          <button className="rounded-full border px-4 py-1">Crear cuenta</button>
+          <button className="session-button">Crear cuenta</button>
         </div>
       )}
     </div>

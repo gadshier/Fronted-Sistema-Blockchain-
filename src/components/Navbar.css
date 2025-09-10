@@ -1,0 +1,31 @@
+.navbar {
+  @apply flex justify-between items-center px-6 py-4 shadow-sm bg-white;
+}
+
+.nav-logo {
+  @apply text-[#6C63FF] font-semibold;
+}
+
+.nav-links {
+  @apply flex gap-4;
+}
+
+.nav-link-active {
+  @apply text-purple-600 font-semibold border-b-2 border-purple-600;
+}
+
+.nav-link {
+  @apply text-gray-600;
+}
+
+.session-account {
+  @apply rounded-full border px-4 py-1;
+}
+
+.session-buttons {
+  @apply flex gap-2;
+}
+
+.session-button {
+  @apply rounded-full border px-4 py-1;
+}
