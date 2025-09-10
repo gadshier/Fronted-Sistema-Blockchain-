@@ -4,8 +4,10 @@ import { connectWallet } from "./utils/wallet";
 import abi from "./abi/MedicineRegistry.json";
 import type { MedicineRegistryContract } from "./types/MedicineRegistry";
 import Navbar from "./components/Navbar";
-import LotForm, { LotData } from "./components/LotForm";
-import LegalForm, { LegalData } from "./components/LegalForm";
+import LotForm from "./components/LotForm";
+import type { LotData } from "./components/LotForm";
+import LegalForm from "./components/LegalForm";
+import type { LegalData } from "./components/LegalForm";
 import "./App.css";
 
 const CONTRACT_ADDRESS = "0x4E0fa35846Cf43E9e204C3744607aB66E33827e0"; // Dirección del contrato desplegado
