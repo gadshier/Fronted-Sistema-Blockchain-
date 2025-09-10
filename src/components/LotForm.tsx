@@ -1,12 +1,12 @@
-import React from "react";
 import "./LotForm.css";
 
 export interface LotData {
   medicineName: string;
-  manufacturer: string;
+  activeIngredient: string;
+  seriesCode: string;
   mfgDate: string;
   expDate: string;
-  seriesCode: string;
+  sanitaryReg: string;
 }
 
 interface LotFormProps {
@@ -17,7 +17,7 @@ interface LotFormProps {
 
 export default function LotForm({ data, onChange, onGenerateCode }: LotFormProps) {
   return (
-    <div>
+    <div className="lot-form">
       <h2 className="lot-form-title">Registro de Lote</h2>
       <input
         className="lot-input"
@@ -27,21 +27,9 @@ export default function LotForm({ data, onChange, onGenerateCode }: LotFormProps
       />
       <input
         className="lot-input"
-        placeholder="Fabricante"
-        value={data.manufacturer}
-        onChange={(e) => onChange("manufacturer", e.target.value)}
-      />
-      <input
-        type="date"
-        className="lot-input"
-        value={data.mfgDate}
-        onChange={(e) => onChange("mfgDate", e.target.value)}
-      />
-      <input
-        type="date"
-        className="lot-input"
-        value={data.expDate}
-        onChange={(e) => onChange("expDate", e.target.value)}
+        placeholder="Principio activo"
+        value={data.activeIngredient}
+        onChange={(e) => onChange("activeIngredient", e.target.value)}
       />
       <div className="series-container">
         <input
@@ -58,6 +46,24 @@ export default function LotForm({ data, onChange, onGenerateCode }: LotFormProps
           Generar
         </button>
       </div>
+      <input
+        type="date"
+        className="lot-input"
+        value={data.mfgDate}
+        onChange={(e) => onChange("mfgDate", e.target.value)}
+      />
+      <input
+        type="date"
+        className="lot-input"
+        value={data.expDate}
+        onChange={(e) => onChange("expDate", e.target.value)}
+      />
+      <input
+        className="lot-input"
+        placeholder="Registro sanitario (DIGEMID)"
+        value={data.sanitaryReg}
+        onChange={(e) => onChange("sanitaryReg", e.target.value)}
+      />
     </div>
   );
 }
