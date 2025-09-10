@@ -1,11 +1,10 @@
-import React from "react";
 import "./LegalForm.css";
 
 export interface LegalData {
-  name: string;
-  id: string;
-  phone: string;
-  email: string;
+  firstName: string;
+  lastName: string;
+  dni: string;
+  license: string;
 }
 
 interface LegalFormProps {
@@ -15,31 +14,31 @@ interface LegalFormProps {
 
 export default function LegalForm({ data, onChange }: LegalFormProps) {
   return (
-    <div>
+    <div className="legal-form">
       <h2 className="legal-form-title">Representante Legal</h2>
       <input
         className="legal-input"
-        placeholder="Nombre completo"
-        value={data.name}
-        onChange={(e) => onChange("name", e.target.value)}
+        placeholder="Nombres"
+        value={data.firstName}
+        onChange={(e) => onChange("firstName", e.target.value)}
       />
       <input
         className="legal-input"
-        placeholder="Documento de identidad"
-        value={data.id}
-        onChange={(e) => onChange("id", e.target.value)}
+        placeholder="Apellidos"
+        value={data.lastName}
+        onChange={(e) => onChange("lastName", e.target.value)}
       />
       <input
         className="legal-input"
-        placeholder="Teléfono"
-        value={data.phone}
-        onChange={(e) => onChange("phone", e.target.value)}
+        placeholder="DNI / RUC"
+        value={data.dni}
+        onChange={(e) => onChange("dni", e.target.value)}
       />
       <input
         className="legal-input"
-        placeholder="Correo electrónico"
-        value={data.email}
-        onChange={(e) => onChange("email", e.target.value)}
+        placeholder="N° de colegiatura"
+        value={data.license}
+        onChange={(e) => onChange("license", e.target.value)}
       />
     </div>
   );

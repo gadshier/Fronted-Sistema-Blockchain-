@@ -18,17 +18,18 @@ function App() {
 
   const [lotData, setLotData] = useState<LotData>({
     medicineName: "",
-    manufacturer: "",
+    activeIngredient: "",
+    seriesCode: "",
     mfgDate: "",
     expDate: "",
-    seriesCode: "",
+    sanitaryReg: "",
   });
 
   const [legalData, setLegalData] = useState<LegalData>({
-    name: "",
-    id: "",
-    phone: "",
-    email: "",
+    firstName: "",
+    lastName: "",
+    dni: "",
+    license: "",
   });
 
   // conectar MetaMask
@@ -71,7 +72,7 @@ function App() {
 
     const tx = await contract.registrarLote(
       lotData.medicineName,
-      lotData.manufacturer,
+      lotData.activeIngredient,
       mfg,
       exp,
       lotData.seriesCode
