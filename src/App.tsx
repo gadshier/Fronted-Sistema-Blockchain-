@@ -11,12 +11,23 @@ import type { LegalData } from "./components/LegalForm";
 import { useEffect } from "react";
 
 
-const CONTRACT_ADDRESS = "0x4E0fa35846Cf43E9e204C3744607aB66E33827e0"; // Dirección del contrato desplegado
 
+const CONTRACT_ADDRESS = "0x4E0fa35846Cf43E9e204C3744607aB66E33827e0"; // Dirección del contrato desplegado
+interface LotInfo {
+  medicineName: string;
+  seriesCode: string;
+  expDate: string;
+  account: string;
+  txHash: string;
+  transactionHash?: string;
+}
 function App() {
   const [account, setAccount] = useState<string>("");
   const [contract, setContract] = useState<MedicineRegistryContract | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
+  const [showPopup, setShowPopup] = useState(false);
+  const [lastLotInfo, setLastLotInfo] = useState<LotInfo | null>(null);
+
   const [lotData, setLotData] = useState<LotData>({
     medicineName: "",
     activeIngredient: "",
@@ -24,6 +35,7 @@ function App() {
     mfgDate: "",
     expDate: "",
     healthReg: "",
+    
   });
 
   const [legalData, setLegalData] = useState<LegalData>({
@@ -110,7 +122,17 @@ function App() {
     );
 
     await tx.wait();
-    alert("Lote registrado en la blockchain");
+
+    //Guarda la información del último lote registrado
+    setLastLotInfo({
+      medicineName: lotData.medicineName,
+      seriesCode: lotData.seriesCode,
+      expDate: lotData.expDate,
+      account: account,
+      txHash: tx.hash
+    });
+
+    setShowPopup(true); //Abrir el popup
   }
 
   return (
@@ -132,7 +154,15 @@ function App() {
         </button>
         </div>
       </div>
+      {lastLotInfo && !showPopup && (
+        <div className="fixed bottom-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-full shadow cursor-pointer hover:bg-blue-600"
+            onClick={() => setShowPopup(true)}>
+            Último lote registrado
+        </div>
+)}
+
     </div>
+    
   );
 }
 
