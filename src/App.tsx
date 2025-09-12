@@ -18,10 +18,11 @@ function App() {
 
   const [lotData, setLotData] = useState<LotData>({
     medicineName: "",
-    manufacturer: "",
+    activeIngredient: "",
+    seriesCode: "",
     mfgDate: "",
     expDate: "",
-    seriesCode: "",
+    healthReg: "",
   });
 
   const [legalData, setLegalData] = useState<LegalData>({
@@ -71,7 +72,7 @@ function App() {
 
     const tx = await contract.registrarLote(
       lotData.medicineName,
-      lotData.manufacturer,
+      lotData.activeIngredient,
       mfg,
       exp,
       lotData.seriesCode
@@ -84,8 +85,8 @@ function App() {
   return (
     <div className="app-container">
       <Navbar onConnect={handleConnect} account={account} />
-      <div className="app-content">
-        <div className="form-wrapper">
+      <div className="flex flex-col">
+        <div className="flex justify-center gap-72 my-4">
           <LotForm
             data={lotData}
             onChange={handleLotChange}
@@ -93,9 +94,12 @@ function App() {
           />
           <LegalForm data={legalData} onChange={handleLegalChange} />
         </div>
-        <button onClick={registrarLote} className="submit-btn">
+        
+        <div className="flex justify-center mb-12">
+          <button onClick={registrarLote} className=" border border-blue-300 bg-blue-500 text-white px-6 py-3 rounded-full shadow-md hover:bg-blue-600 transition-colors w-[200px]">
           Registrar Lote
         </button>
+        </div>
       </div>
     </div>
   );
