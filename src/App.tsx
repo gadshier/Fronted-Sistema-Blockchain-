@@ -8,6 +8,7 @@ import LotForm from "./components/LotForm";
 import type { LotData } from "./components/LotForm";
 import LegalForm from "./components/LegalForm";
 import type { LegalData } from "./components/LegalForm";
+import LotPopup from "./components/ModalLote";  
 import { useEffect } from "react";
 
 
@@ -179,7 +180,10 @@ function App() {
             onClick={() => setShowPopup(true)}>
             Último lote registrado
         </div>
-)}
+      )}
+      {showPopup && lastLotInfo && (
+        <LotPopup info={lastLotInfo} onClose={() => setShowPopup(false)} />
+      )}
 
     </div>
     

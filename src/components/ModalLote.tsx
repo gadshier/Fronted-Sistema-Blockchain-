@@ -4,21 +4,23 @@ export default function LotPopup({ info, onClose }: { info: any; onClose: () => 
   if (!info) return null;
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
-      <div className="bg-white rounded-xl shadow-lg p-6 w-[400px]">
-        <h2 className="text-xl font-bold mb-4">✅ Lote registrado</h2>
+    <div className="fixed inset-0 flex items-center justify-center z-50">
+      <div className="flex flex-col gap-4 bg-white rounded-xl shadow-lg p-6 w-[400px] border-blue-300 border">
+        <h2 className="text-xl font-bold mb-4">✅ Lote registrado exitosamente</h2>
         <p><strong>Medicamento:</strong> {info.medicineName}</p>
         <p><strong>Código de serie:</strong> {info.seriesCode}</p>
         <p><strong>Fecha vencimiento:</strong> {info.expDate}</p>
         <p><strong>Registrado por:</strong> {info.account}</p>
-        <a
-          href={`https://sepolia.etherscan.io/tx/${info.txHash}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-blue-500 underline block mt-2"
-        >
-          Ver en blockchain
-        </a>
+        <div className="flex justify-center">
+            <a
+                href={`https://sepolia.etherscan.io/tx/${info.txHash}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-blue-500 underline block mt-2 "
+            >
+            Ver en blockchain
+            </a>
+        </div>
 
         <div className="flex justify-end mt-4">
           <button
