@@ -27,6 +27,7 @@ function App() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [showPopup, setShowPopup] = useState(false);
   const [lastLotInfo, setLastLotInfo] = useState<LotInfo | null>(null);
+  const [isRegistering, setIsRegistering] = useState(false);
 
   const [lotData, setLotData] = useState<LotData>({
     medicineName: "",
@@ -55,12 +56,11 @@ function App() {
       const address = await signer.getAddress();
       setAccount(address);
 
-      const _contract = new ethers.Contract(CONTRACT_ADDRESS, (abi as any).abi, signer) as unknown as MedicineRegistryContract;
+      const _contract = new ethers.Contract(CONTRACT_ADDRESS, (abi as { abi: unknown }).abi, signer) as unknown as MedicineRegistryContract;
       setContract(_contract);
-    } catch (err: any) {
-      
+    } catch (err) {
+        console.error(err);
         alert('Error al conectar:ya tiene una petición pendiente en MetaMask, ábrala y complétela o cancele. Si el error persiste, asegúrese de estar en la red correcta y recargue la página.');
-      
     } finally {
       setIsConnecting(false);
     }
@@ -109,30 +109,38 @@ function App() {
   // registrar lote usando datos del formulario
   async function registrarLote() {
     if (!contract) return alert("Conecta tu wallet primero");
+    if (isRegistering) return;
+    setIsRegistering(true);
+    try {
+      const mfg = Math.floor(new Date(lotData.mfgDate).getTime() / 1000);
+      const exp = Math.floor(new Date(lotData.expDate).getTime() / 1000);
 
-    const mfg = Math.floor(new Date(lotData.mfgDate).getTime() / 1000);
-    const exp = Math.floor(new Date(lotData.expDate).getTime() / 1000);
+      const tx = await contract.registrarLote(
+        lotData.medicineName,
+        lotData.activeIngredient,
+        mfg,
+        exp,
+        lotData.seriesCode
+      );
 
-    const tx = await contract.registrarLote(
-      lotData.medicineName,
-      lotData.activeIngredient,
-      mfg,
-      exp,
-      lotData.seriesCode
-    );
+      await tx.wait();
 
-    await tx.wait();
+      //Guarda la información del último lote registrado
+      setLastLotInfo({
+        medicineName: lotData.medicineName,
+        seriesCode: lotData.seriesCode,
+        expDate: lotData.expDate,
+        account: account,
+        txHash: tx.hash
+      });
 
-    //Guarda la información del último lote registrado
-    setLastLotInfo({
-      medicineName: lotData.medicineName,
-      seriesCode: lotData.seriesCode,
-      expDate: lotData.expDate,
-      account: account,
-      txHash: tx.hash
-    });
-
-    setShowPopup(true); //Abrir el popup
+      setShowPopup(true); //Abrir el popup
+    } catch (err) {
+      console.error(err);
+      alert("Transacción cancelada o fallida.");
+    } finally {
+      setIsRegistering(false);
+    }
   }
 
   return (
@@ -149,9 +157,13 @@ function App() {
         </div>
         
         <div className="flex justify-center mb-12">
-          <button onClick={registrarLote} className=" border border-blue-300 bg-blue-500 text-white px-6 py-3 rounded-full shadow-md hover:bg-blue-600 transition-colors w-[200px]">
-          Registrar Lote
-        </button>
+          <button
+            onClick={registrarLote}
+            disabled={isRegistering}
+            className={`border border-blue-300 bg-blue-500 text-white px-6 py-3 rounded-full shadow-md hover:bg-blue-600 transition-colors w-[200px] ${isRegistering ? "opacity-50 cursor-not-allowed" : ""}`}
+          >
+            {isRegistering ? "Registrando..." : "Registrar Lote"}
+          </button>
         </div>
       </div>
       {lastLotInfo && !showPopup && (
