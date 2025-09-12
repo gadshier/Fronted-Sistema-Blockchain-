@@ -110,10 +110,18 @@ function App() {
   async function registrarLote() {
     if (!contract) return alert("Conecta tu wallet primero");
     if (isRegistering) return;
+
+    const mfgMs = Date.parse(lotData.mfgDate);
+    const expMs = Date.parse(lotData.expDate);
+    if (Number.isNaN(mfgMs) || Number.isNaN(expMs)) {
+      alert("Completa las fechas antes de registrar el lote.");
+      return;
+    }
+
     setIsRegistering(true);
     try {
-      const mfg = Math.floor(new Date(lotData.mfgDate).getTime() / 1000);
-      const exp = Math.floor(new Date(lotData.expDate).getTime() / 1000);
+      const mfg = Math.floor(mfgMs / 1000);
+      const exp = Math.floor(expMs / 1000);
 
       const tx = await contract.registrarLote(
         lotData.medicineName,
@@ -125,16 +133,16 @@ function App() {
 
       await tx.wait();
 
-      //Guarda la información del último lote registrado
+      // Guarda la información del último lote registrado
       setLastLotInfo({
         medicineName: lotData.medicineName,
         seriesCode: lotData.seriesCode,
         expDate: lotData.expDate,
         account: account,
-        txHash: tx.hash
+        txHash: tx.hash,
       });
 
-      setShowPopup(true); //Abrir el popup
+      setShowPopup(true); // Abrir el popup
     } catch (err) {
       console.error(err);
       alert("Transacción cancelada o fallida.");
