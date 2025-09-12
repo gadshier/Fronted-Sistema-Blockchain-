@@ -8,14 +8,15 @@ import LotForm from "./components/LotForm";
 import type { LotData } from "./components/LotForm";
 import LegalForm from "./components/LegalForm";
 import type { LegalData } from "./components/LegalForm";
-import "./App.css";
+import { useEffect } from "react";
+
 
 const CONTRACT_ADDRESS = "0x4E0fa35846Cf43E9e204C3744607aB66E33827e0"; // Dirección del contrato desplegado
 
 function App() {
   const [account, setAccount] = useState<string>("");
   const [contract, setContract] = useState<MedicineRegistryContract | null>(null);
-
+  const [isConnecting, setIsConnecting] = useState(false);
   const [lotData, setLotData] = useState<LotData>({
     medicineName: "",
     activeIngredient: "",
@@ -34,21 +35,51 @@ function App() {
 
   // conectar MetaMask
   async function handleConnect() {
-    const conn = await connectWallet();
-    if (conn) {
+    if (isConnecting) return;
+    setIsConnecting(true);
+    try {
+      const conn = await connectWallet();
       const { signer } = conn;
       const address = await signer.getAddress();
       setAccount(address);
 
-      // instanciamos el contrato
-      const _contract = new ethers.Contract(
-        CONTRACT_ADDRESS,
-        abi.abi,
-        signer
-      ) as unknown as MedicineRegistryContract;
+      const _contract = new ethers.Contract(CONTRACT_ADDRESS, (abi as any).abi, signer) as unknown as MedicineRegistryContract;
       setContract(_contract);
+    } catch (err: any) {
+      
+        alert('Error al conectar:ya tiene una petición pendiente en MetaMask, ábrala y complétela o cancele. Si el error persiste, asegúrese de estar en la red correcta y recargue la página.');
+      
+    } finally {
+      setIsConnecting(false);
     }
   }
+
+  useEffect(() => {
+    if ((window).ethereum) {
+      (window).ethereum.on("accountsChanged", (accounts: string[]) => {
+        setAccount(accounts[0] || ""); // si desconecta queda vacío
+      });
+    }
+  }, []);
+
+  useEffect(() => {
+    const eth = (window).ethereum;
+    if (!eth) return;
+
+    const onAccountsChanged = (accs: string[]) => {
+      const a = accs?.[0] ?? "";
+      setAccount(a);
+      if (!a) setContract(null);
+    };
+    const onChainChanged = () => window.location.reload();
+
+    eth.on("accountsChanged", onAccountsChanged);
+    eth.on("chainChanged", onChainChanged);
+    return () => {
+      eth.removeListener?.("accountsChanged", onAccountsChanged);
+      eth.removeListener?.("chainChanged", onChainChanged);
+    };
+  }, []);
 
   const handleLotChange = (field: keyof LotData, value: string) => {
     setLotData((prev) => ({ ...prev, [field]: value }));

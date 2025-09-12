@@ -1,12 +1,13 @@
 interface NavbarProps {
   onConnect: () => void;
   account?: string;
+  isConnecting?: boolean;
 }
 
-export default function Navbar({ onConnect, account }: NavbarProps) {
+export default function Navbar({ onConnect, account, isConnecting }: NavbarProps) {
   return (
     <header className="w-full bg-white shadow-sm">
-      <div className="max-w-7xl mx-auto flex items-center justify-between px-6 py-3 roiunded-b-lg">
+      <div className=" mx-auto flex items-center justify-between px-6 py-3 roiunded-b-lg">
         
         {/* Logo + Nombre */}
         <div className="flex flex-col items-center gap-2">
@@ -32,16 +33,22 @@ export default function Navbar({ onConnect, account }: NavbarProps) {
         {/* Botones de sesión */}
         <div className="flex items-center gap-3  justify-end">
           {account ? (
-            <span className="w-[200px] py-2 border rounded-full text-sm text-gray-700">
+            
+            <div className="flex items-center gap-4">
+              
+              <span className=" py-2 border rounded-full text-sm text-blue-700">
               {account}
-            </span>
+              </span>
+              <img src="/man.png" alt="MetaMask logo" className="inline size-10 mr-2" />
+            </div>
           ) : (
             <>
               <button
                 onClick={onConnect}
+                disabled={!!isConnecting}
                 className="w-[150px] h-[35px] border rounded-full text-gray-700 hover:bg-[#94B0D1] hover:text-white transition-colors"
               >
-                Iniciar sesión
+                {isConnecting ? "Conectando..." : "Iniciar Sesión"}
               </button>
             </>
         )}

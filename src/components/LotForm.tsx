@@ -17,7 +17,7 @@
 
   export default function LotForm({ data, onChange, onGenerateCode }: LotFormProps) {
     return (
-      <div className="p-6 rounded-4xl flex flex-col gap-8 items-center  shadow-md max-w-3xl  border border-blue-300">
+      <div className="p-6 rounded-4xl flex flex-col gap-8 items-center  shadow-md max-w-3xl  border border-blue-300 bg-blue-50">
         <h1 className=" text-lg font-bold">Registro de Lote</h1>  
         <div className="flex flex-col">
           <div className="flex flex-col gap-4">

@@ -14,7 +14,7 @@ interface LegalFormProps {
 
 export default function LegalForm({ data, onChange }: LegalFormProps) {
   return (
-    <div className="p-6 rounded-4xl flex flex-col gap-8 items-center  shadow-md max-w-3xl  border border-blue-300 w-[350px]">
+    <div className="p-6 rounded-4xl flex flex-col gap-8 items-center  shadow-md max-w-3xl  border border-blue-300 w-[350px] bg-blue-50">
       <h2 className="text-lg font-bold">Representante Legal</h2>
       <div className="flex flex-col gap-4 w-full">
         <label htmlFor="medicineName" className="lot-label">
