@@ -17,7 +17,7 @@
 
   export default function LotForm({ data, onChange, onGenerateCode }: LotFormProps) {
     return (
-      <div className="p-6 rounded-4xl flex flex-col gap-8 items-center  shadow-md max-w-3xl  border border-blue-300 bg-blue-50">
+      <div className="p-6 rounded-4xl flex flex-col gap-8 items-center  shadow-2xl max-w-3xl  border border-gray-300">
         <h1 className=" text-lg font-bold">Registro de Lote</h1>  
         <div className="flex flex-col">
           <div className="flex flex-col gap-4">
@@ -27,7 +27,7 @@
               </label>
               <input
                 id="medicineName"
-                className="lot-input text-gray-400 border rounded-lg px-2"
+                className="lot-input text-gray-400 border rounded-lg px-2 hover:border-blue-500"
                 value={data.medicineName}
                 onChange={(e) => onChange("medicineName", e.target.value)}
               />
@@ -39,7 +39,7 @@
               </label>
               <input
                 id="activeIngredient"
-                className="lot-input text-gray-400 border rounded-lg px-2"
+                className="lot-input text-gray-400 border rounded-lg px-2 hover:border-blue-500"
                 value={data.activeIngredient}
                 onChange={(e) => onChange("activeIngredient", e.target.value)}
               />
@@ -52,7 +52,7 @@
               <div className="flex  gap-6">
                 <input
                   id="seriesCode"
-                  className="text-gray-400 border rounded-lg  px-2"
+                  className="text-gray-400 border rounded-lg  px-2 hover:border-blue-500"
                   value={data.seriesCode}
                   onChange={(e) => onChange("seriesCode", e.target.value)}
                 />
@@ -73,7 +73,7 @@
               <input
                 id="mfgDate"
                 type="date"
-                className="lot-input text-gray-400 border rounded-lg px-2"
+                className="lot-input text-gray-400 border rounded-lg px-2 hover:border-blue-500"
                 value={data.mfgDate}
                 onChange={(e) => onChange("mfgDate", e.target.value)}
               />
@@ -86,7 +86,7 @@
               <input
                 id="expDate"
                 type="date"
-                className="lot-input text-gray-400 border rounded-lg px-2"
+                className="lot-input text-gray-400 border rounded-lg px-2 hover:border-blue-500"
                 value={data.expDate}
                 onChange={(e) => onChange("expDate", e.target.value)}
               />
