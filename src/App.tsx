@@ -8,7 +8,9 @@ import LotForm from "./components/LotForm";
 import type { LotData } from "./components/LotForm";
 import LegalForm from "./components/LegalForm";
 import type { LegalData } from "./components/LegalForm";
-import LotPopup from "./components/ModalLote";  
+import LotPopup from "./components/ModalLote";
+import TraceabilityForm from "./components/TraceabilityForm";
+import TransferForm from "./components/TransferForm";
 import { useEffect } from "react";
 
 
@@ -29,6 +31,8 @@ function App() {
   const [showPopup, setShowPopup] = useState(false);
   const [lastLotInfo, setLastLotInfo] = useState<LotInfo | null>(null);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [activeTab, setActiveTab] =
+    useState<'consult' | 'register' | 'transfer'>('register');
 
   const [lotData, setLotData] = useState<LotData>({
     medicineName: "",
@@ -52,11 +56,15 @@ function App() {
     if (isConnecting) return;
     setIsConnecting(true);
     try {
-      const{provider, signer,account} = await connectWallet();
+      const { signer } = await connectWallet();
       const address = await signer.getAddress();
       setAccount(address);
 
-      const _contract = new ethers.Contract(CONTRACT_ADDRESS, abi.abi, signer) as unknown as MedicineRegistryContract;
+      const _contract = new ethers.Contract(
+        CONTRACT_ADDRESS,
+        abi.abi,
+        signer
+      ) as unknown as MedicineRegistryContract;
       setContract(_contract);
     } catch (err) {
         console.error(err);
@@ -153,34 +161,46 @@ function App() {
 
   return (
     <div className="app-container">
-      <Navbar onConnect={handleConnect} account={account} />
-      <div className="flex flex-col">
-        <div className="flex justify-center gap-72 my-4">
-          <LotForm
-            data={lotData}
-            onChange={handleLotChange}
-            onGenerateCode={generateSeriesCode}
-          />
-          <LegalForm data={legalData} onChange={handleLegalChange} />
-        </div>
-        
-        <div className="flex justify-center mb-12">
-          <button
-            onClick={registrarLote}
-            disabled={isRegistering}
-            className={`border border-blue-300 bg-blue-500 text-white px-6 py-3 rounded-full shadow-md hover:bg-blue-600 transition-colors w-[200px] ${isRegistering ? "opacity-50 cursor-not-allowed" : ""}`}
-          >
-            {isRegistering ? "Registrando..." : "Registrar Lote"}
-          </button>
-        </div>
-      </div>
-      {lastLotInfo && !showPopup && (
-        <div className="fixed bottom-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-full shadow cursor-pointer hover:bg-blue-600"
-            onClick={() => setShowPopup(true)}>
-            Último lote registrado
+      <Navbar
+        onConnect={handleConnect}
+        account={account}
+        isConnecting={isConnecting}
+        activeTab={activeTab}
+        onNavigate={setActiveTab}
+      />
+      {activeTab === 'register' && (
+        <div className="flex flex-col">
+          <div className="flex justify-center gap-72 my-4">
+            <LotForm
+              data={lotData}
+              onChange={handleLotChange}
+              onGenerateCode={generateSeriesCode}
+            />
+            <LegalForm data={legalData} onChange={handleLegalChange} />
+          </div>
+
+          <div className="flex justify-center mb-12">
+            <button
+              onClick={registrarLote}
+              disabled={isRegistering}
+              className={`border border-blue-300 bg-blue-500 text-white px-6 py-3 rounded-full shadow-md hover:bg-blue-600 transition-colors w-[200px] ${isRegistering ? "opacity-50 cursor-not-allowed" : ""}`}
+            >
+              {isRegistering ? "Registrando..." : "Registrar Lote"}
+            </button>
+          </div>
         </div>
       )}
-      {showPopup && lastLotInfo && (
+      {activeTab === 'consult' && <TraceabilityForm />}
+      {activeTab === 'transfer' && <TransferForm />}
+      {activeTab === 'register' && lastLotInfo && !showPopup && (
+        <div
+          className="fixed bottom-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-full shadow cursor-pointer hover:bg-blue-600"
+          onClick={() => setShowPopup(true)}
+        >
+          Último lote registrado
+        </div>
+      )}
+      {activeTab === 'register' && showPopup && lastLotInfo && (
         <LotPopup info={lastLotInfo} onClose={() => setShowPopup(false)} />
       )}
 
