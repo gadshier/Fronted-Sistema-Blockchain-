@@ -52,12 +52,11 @@ function App() {
     if (isConnecting) return;
     setIsConnecting(true);
     try {
-      const conn = await connectWallet();
-      const { signer } = conn;
+      const{provider, signer,account} = await connectWallet();
       const address = await signer.getAddress();
       setAccount(address);
 
-      const _contract = new ethers.Contract(CONTRACT_ADDRESS, (abi as { abi: unknown }).abi, signer) as unknown as MedicineRegistryContract;
+      const _contract = new ethers.Contract(CONTRACT_ADDRESS, abi.abi, signer) as unknown as MedicineRegistryContract;
       setContract(_contract);
     } catch (err) {
         console.error(err);
