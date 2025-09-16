@@ -1,6 +1,19 @@
 
 
-export default function LotPopup({ info, onClose }: { info: any; onClose: () => void }) {
+interface LotInfo {
+  medicineName: string;
+  seriesCode: string;
+  expDate: string;
+  account: string;
+  txHash: string;
+}
+
+interface LotPopupProps {
+  info: LotInfo;
+  onClose: () => void;
+}
+
+export default function LotPopup({ info, onClose }: LotPopupProps) {
   if (!info) return null;
 
   return (

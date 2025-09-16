@@ -2,9 +2,17 @@ interface NavbarProps {
   onConnect: () => void;
   account?: string;
   isConnecting?: boolean;
+  activeTab: 'consult' | 'register' | 'transfer';
+  onNavigate: (tab: 'consult' | 'register' | 'transfer') => void;
 }
 
-export default function Navbar({ onConnect, account, isConnecting }: NavbarProps) {
+export default function Navbar({
+  onConnect,
+  account,
+  isConnecting,
+  activeTab,
+  onNavigate,
+}: NavbarProps) {
   return (
     <header className="w-full bg-white shadow-sm">
       <div className=" mx-auto flex items-center justify-between px-6 py-3 roiunded-b-lg">
@@ -19,15 +27,36 @@ export default function Navbar({ onConnect, account, isConnecting }: NavbarProps
 
         {/* Links de navegación */}
         <nav className="flex justify-between w-[500px]">
-          <a href="#" className="text-[#000000] hover:text-[#2997f0] no-underline">
+          <button
+            onClick={() => onNavigate('consult')}
+            className={`no-underline ${
+              activeTab === 'consult'
+                ? 'text-[#2997f0] font-semibold'
+                : 'text-[#000000] hover:text-[#2997f0]'
+            }`}
+          >
             Consultar Medicamentos
-          </a>
-          <a href="#" className="text-[#2997f0] font-semibold no-underline">
+          </button>
+          <button
+            onClick={() => onNavigate('register')}
+            className={`no-underline ${
+              activeTab === 'register'
+                ? 'text-[#2997f0] font-semibold'
+                : 'text-[#000000] hover:text-[#2997f0]'
+            }`}
+          >
             Registrar Lote
-          </a>
-          <a href="#" className="text-[#000000] hover:text-[#2997f0] no-underline">
+          </button>
+          <button
+            onClick={() => onNavigate('transfer')}
+            className={`no-underline ${
+              activeTab === 'transfer'
+                ? 'text-[#2997f0] font-semibold'
+                : 'text-[#000000] hover:text-[#2997f0]'
+            }`}
+          >
             Realizar Transferencia
-          </a>
+          </button>
         </nav>
 
         {/* Botones de sesión */}
