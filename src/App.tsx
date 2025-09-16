@@ -11,6 +11,8 @@ import type { LegalData } from "./components/LegalForm";
 import LotPopup from "./components/ModalLote";
 import TraceabilityForm from "./components/TraceabilityForm";
 import TransferForm from "./components/TransferForm";
+import { AnimatePresence } from "framer-motion";
+import PageWrapper from "./components/Layout/PageWraper";
 import { useEffect } from "react";
 
 
@@ -168,9 +170,11 @@ function App() {
         activeTab={activeTab}
         onNavigate={setActiveTab}
       />
+      <AnimatePresence mode="wait">
       {activeTab === 'register' && (
-        <div className="flex flex-col">
-          <div className="flex justify-center gap-72 my-4">
+        <PageWrapper key="register" >
+        <div className="flex flex-col ">
+          <div className="flex justify-center gap-72 my-4 ">
             <LotForm
               data={lotData}
               onChange={handleLotChange}
@@ -189,9 +193,18 @@ function App() {
             </button>
           </div>
         </div>
+        </PageWrapper>
       )}
-      {activeTab === 'consult' && <TraceabilityForm />}
-      {activeTab === 'transfer' && <TransferForm />}
+      
+      {activeTab === 'consult' && 
+        <PageWrapper key="consult">
+          <TraceabilityForm />
+        </PageWrapper>}
+      {activeTab === 'transfer' &&
+      <PageWrapper key="transfer">
+       <TransferForm />
+       </PageWrapper>
+       }
       {activeTab === 'register' && lastLotInfo && !showPopup && (
         <div
           className="fixed bottom-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-full shadow cursor-pointer hover:bg-blue-600"
@@ -203,7 +216,7 @@ function App() {
       {activeTab === 'register' && showPopup && lastLotInfo && (
         <LotPopup info={lastLotInfo} onClose={() => setShowPopup(false)} />
       )}
-
+    </AnimatePresence>
     </div>
     
   );

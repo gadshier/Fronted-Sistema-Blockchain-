@@ -1,9 +1,32 @@
+import PageWrapper from "./Layout/PageWraper";
+
 export default function TransferForm() {
   return (
-    <div className="flex flex-col items-center gap-8 mt-8">
-      <div className="flex flex-col md:flex-row gap-8">
+    <PageWrapper>
+    <div className="flex flex-col items-center gap-8 my-4 ">
+      <div className="flex md:flex-row gap-80">
         <div className="p-6 rounded-4xl flex flex-col gap-6 items-center shadow-2xl max-w-3xl border border-gray-300 w-[361px]">
           <h2 className="text-lg font-bold">Complete los datos del lote</h2>
+          <div className="flex flex-col gap-4 w-full">
+            <label className="lot-label">Datos del emisor</label>
+            <input 
+            className="text-black border rounded-lg px-2 bg-gray-200" 
+            placeholder="Laboratorios Peru S.A.C"
+            disabled
+            />
+          </div>
+          <div className="flex flex-col gap-4 w-full">
+            <label className="lot-label">Representante Legal/Técnico</label>
+            <input 
+            className="text-black border rounded-lg px-2  bg-gray-200" 
+            placeholder="QF Maria Lopez(CIPQF 67890)"
+            disabled
+            />
+          </div>
+          <div className="flex flex-col gap-4 w-full">
+            <label className="lot-label">Número de Lote</label>
+            <input className="text-gray-400 border rounded-lg px-2 hover:border-blue-500" />
+          </div>
           <div className="flex flex-col gap-4 w-full">
             <label className="lot-label">Nombre del medicamento</label>
             <input className="text-gray-400 border rounded-lg px-2 hover:border-blue-500" />
@@ -37,6 +60,7 @@ export default function TransferForm() {
         Realizar transferencia
       </button>
     </div>
+    </PageWrapper>
   );
 }
 
