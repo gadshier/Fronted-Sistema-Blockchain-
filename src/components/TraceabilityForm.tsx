@@ -13,6 +13,8 @@ interface LoteInfo {
   mfgDate: number;
   expDate: number;
   propietario: string;
+  fechaRegistro: number;
+  fechaTransferencia: number;
 }
 
 export default function TraceabilityForm({
@@ -23,8 +25,16 @@ export default function TraceabilityForm({
   const [error, setError] = useState<string | null>(null);
   const [loteInfo, setLoteInfo] = useState<LoteInfo | null>(null);
 
-  const formatDate = (timestamp: number) =>
-    new Date(timestamp * 1000).toLocaleDateString();
+  const formatDate = (
+    timestamp?: number,
+    emptyMessage = "Fecha no disponible"
+  ) => {
+    if (!timestamp) {
+      return emptyMessage;
+    }
+
+    return new Date(timestamp * 1000).toLocaleDateString();
+  };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -44,8 +54,16 @@ export default function TraceabilityForm({
     setIsLoading(true);
     try {
       const loteId = ethers.keccak256(ethers.toUtf8Bytes(trimmedCode));
-      const [nombre, fabricante, mfgDate, expDate, propietario, existe] =
-        await contract.obtenerLote(loteId);
+      const [
+        nombre,
+        fabricante,
+        mfgDate,
+        expDate,
+        propietario,
+        fechaRegistro,
+        fechaTransferencia,
+        existe,
+      ] = await contract.obtenerLote(loteId);
 
       if (!existe) {
         setError("Lote no encontrado en la blockchain.");
@@ -58,6 +76,8 @@ export default function TraceabilityForm({
         mfgDate: Number(mfgDate),
         expDate: Number(expDate),
         propietario,
+        fechaRegistro: Number(fechaRegistro),
+        fechaTransferencia: Number(fechaTransferencia),
       });
     } catch (err) {
       console.error(err);
@@ -127,6 +147,21 @@ export default function TraceabilityForm({
             <div className="flex justify-between">
               <dt className="font-medium">Propietario actual</dt>
               <dd className="text-right break-all">{loteInfo.propietario}</dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="font-medium">Fecha de registro</dt>
+              <dd className="text-right">
+                {formatDate(loteInfo.fechaRegistro)}
+              </dd>
+            </div>
+            <div className="flex justify-between">
+              <dt className="font-medium">Última transferencia</dt>
+              <dd className="text-right">
+                {formatDate(
+                  loteInfo.fechaTransferencia,
+                  "Sin transferencias registradas"
+                )}
+              </dd>
             </div>
           </dl>
         </div>

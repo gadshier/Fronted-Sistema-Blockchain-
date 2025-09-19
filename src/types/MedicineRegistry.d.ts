@@ -10,5 +10,8 @@ export interface MedicineRegistryContract {
   ) => Promise<ContractTransactionResponse>;
   obtenerLote: (
     loteId: string
-  ) => Promise<[string, string, bigint, bigint, string, boolean]>;
+  ) =>
+    Promise<
+      [string, string, bigint, bigint, string, bigint, bigint, boolean]
+    >;
 }
