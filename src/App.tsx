@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ethers } from "ethers";
+import type { Eip1193Provider } from "ethers";
 import { connectWallet } from "./utils/wallet";
 import abi from "./abi/MedicineRegistry.json";
 import type { MedicineRegistryContract } from "./types/MedicineRegistry";
@@ -17,7 +18,15 @@ import { useEffect } from "react";
 
 
 
-const CONTRACT_ADDRESS = "0x4E0fa35846Cf43E9e204C3744607aB66E33827e0"; // Dirección del contrato desplegado
+const CONTRACT_ADDRESS = "0x2479cC5ba9D423A88e0958500E2BDD79bF66fc1C"; // Dirección del contrato desplegado
+
+type EthereumProviderWithEvents = Eip1193Provider & {
+  on?: (eventName: string, listener: (...args: unknown[]) => void) => void;
+  removeListener?: (
+    eventName: string,
+    listener: (...args: unknown[]) => void
+  ) => void;
+};
 interface LotInfo {
   medicineName: string;
   seriesCode: string;
@@ -77,26 +86,21 @@ function App() {
   }
 
   useEffect(() => {
-    if ((window).ethereum) {
-      (window).ethereum.on("accountsChanged", (accounts: string[]) => {
-        setAccount(accounts[0] || ""); // si desconecta queda vacío
-      });
-    }
-  }, []);
-
-  useEffect(() => {
-    const eth = (window).ethereum;
+    const eth = window.ethereum as EthereumProviderWithEvents | undefined;
     if (!eth) return;
 
-    const onAccountsChanged = (accs: string[]) => {
-      const a = accs?.[0] ?? "";
+    const onAccountsChanged = (...args: unknown[]) => {
+      const accounts = Array.isArray(args[0])
+        ? (args[0] as string[])
+        : [];
+      const a = accounts?.[0] ?? "";
       setAccount(a);
       if (!a) setContract(null);
     };
     const onChainChanged = () => window.location.reload();
 
-    eth.on("accountsChanged", onAccountsChanged);
-    eth.on("chainChanged", onChainChanged);
+    eth.on?.("accountsChanged", onAccountsChanged);
+    eth.on?.("chainChanged", onChainChanged);
     return () => {
       eth.removeListener?.("accountsChanged", onAccountsChanged);
       eth.removeListener?.("chainChanged", onChainChanged);
@@ -162,7 +166,7 @@ function App() {
   }
 
   return (
-    <div className="app-container">
+    <div className="app-container overflow-x-hidden">
       <Navbar
         onConnect={handleConnect}
         account={account}
@@ -196,9 +200,9 @@ function App() {
         </PageWrapper>
       )}
       
-      {activeTab === 'consult' && 
+      {activeTab === 'consult' &&
         <PageWrapper key="consult">
-          <TraceabilityForm />
+          <TraceabilityForm contract={contract} />
         </PageWrapper>}
       {activeTab === 'transfer' &&
       <PageWrapper key="transfer">
