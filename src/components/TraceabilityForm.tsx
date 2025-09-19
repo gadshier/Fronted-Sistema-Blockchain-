@@ -33,7 +33,7 @@ export default function TraceabilityForm({
       return emptyMessage;
     }
 
-    return new Date(timestamp * 1000).toLocaleDateString();
+    return new Date(timestamp * 1000).toLocaleString();
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
