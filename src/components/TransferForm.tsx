@@ -1,9 +1,10 @@
-import { FormEvent, useState } from "react";
+import { useState } from "react";
+import type { FormEvent } from "react";
 import { ethers } from "ethers";
 import PageWrapper from "./Layout/PageWraper";
 import type { MedicineRegistryContract } from "../types/MedicineRegistry";
 import TransferSummaryModal, {
-  TransferSummaryData,
+  type TransferSummaryData,
 } from "./TransferSummaryModal";
 
 interface TransferFormProps {
