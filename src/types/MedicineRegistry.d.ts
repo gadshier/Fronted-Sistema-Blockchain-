@@ -8,6 +8,10 @@ export interface MedicineRegistryContract {
     expDate: number,
     serial: string
   ) => Promise<ContractTransactionResponse>;
+  transferirLote: (
+    loteId: string,
+    nuevoPropietario: string
+  ) => Promise<ContractTransactionResponse>;
   obtenerLote: (
     loteId: string
   ) =>
