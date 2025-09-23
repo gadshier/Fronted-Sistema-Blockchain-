@@ -206,7 +206,7 @@ function App() {
         </PageWrapper>}
       {activeTab === 'transfer' &&
       <PageWrapper key="transfer">
-       <TransferForm />
+       <TransferForm contract={contract} account={account} />
        </PageWrapper>
        }
       {activeTab === 'register' && lastLotInfo && !showPopup && (
