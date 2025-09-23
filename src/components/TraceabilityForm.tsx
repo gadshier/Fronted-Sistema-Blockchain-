@@ -1,6 +1,11 @@
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { ethers } from "ethers";
+import {
+  ethers,
+  Contract,
+  type ContractEventName,
+  type EventLog,
+} from "ethers";
 import type { MedicineRegistryContract } from "../types/MedicineRegistry";
 
 interface TraceabilityFormProps {
@@ -17,6 +22,14 @@ interface LoteInfo {
   fechaTransferencia: number;
 }
 
+type TransferRecord = {
+  from: string;
+  to: string;
+  timestamp: number;
+  txHash?: string;
+  esActual: boolean;
+};
+
 export default function TraceabilityForm({
   contract,
 }: TraceabilityFormProps) {
@@ -24,6 +37,9 @@ export default function TraceabilityForm({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loteInfo, setLoteInfo] = useState<LoteInfo | null>(null);
+  const [historial, setHistorial] = useState<TransferRecord[]>([]);
+  const [isTimelineLoading, setIsTimelineLoading] = useState(false);
+  const [timelineError, setTimelineError] = useState<string | null>(null);
 
   const formatDate = (
     timestamp?: number,
@@ -40,6 +56,9 @@ export default function TraceabilityForm({
     event.preventDefault();
     setError(null);
     setLoteInfo(null);
+    setHistorial([]);
+    setTimelineError(null);
+    setIsTimelineLoading(false);
 
     const trimmedCode = codigo.trim();
     if (!contract) {
@@ -70,7 +89,7 @@ export default function TraceabilityForm({
         return;
       }
 
-      setLoteInfo({
+      const loteData: LoteInfo = {
         nombre,
         fabricante,
         mfgDate: Number(mfgDate),
@@ -78,7 +97,130 @@ export default function TraceabilityForm({
         propietario,
         fechaRegistro: Number(fechaRegistro),
         fechaTransferencia: Number(fechaTransferencia),
-      });
+      };
+
+      setLoteInfo(loteData);
+
+      setIsTimelineLoading(true);
+      try {
+        const blockchainContract = contract as unknown as Contract;
+        const filters =
+          blockchainContract.filters as
+            | Record<string, (...args: unknown[]) => ContractEventName>
+            | undefined;
+
+        const registroFilter = filters?.RegistroLote?.(loteId);
+        const transferenciaFilter = filters?.TransferenciaLote?.(loteId);
+
+        const [registroEventsRaw, transferenciaEventsRaw] = await Promise.all([
+          registroFilter
+            ? (blockchainContract.queryFilter(
+                registroFilter
+              ) as Promise<EventLog[]>)
+            : Promise.resolve([] as EventLog[]),
+          transferenciaFilter
+            ? (blockchainContract.queryFilter(
+                transferenciaFilter
+              ) as Promise<EventLog[]>)
+            : Promise.resolve([] as EventLog[]),
+        ]);
+
+        const registroEvents = registroEventsRaw ?? [];
+        const transferenciaEvents = transferenciaEventsRaw ?? [];
+
+        const combinedEvents: Array<{
+          type: "registro" | "transferencia";
+          event: EventLog;
+        }> = [
+          ...registroEvents.map((event) => ({
+            type: "registro" as const,
+            event,
+          })),
+          ...transferenciaEvents.map((event) => ({
+            type: "transferencia" as const,
+            event,
+          })),
+        ].sort((a, b) => {
+          const blockA = a.event.blockNumber ?? 0;
+          const blockB = b.event.blockNumber ?? 0;
+          if (blockA !== blockB) {
+            return blockA - blockB;
+          }
+          const indexA = a.event.index ?? 0;
+          const indexB = b.event.index ?? 0;
+          return indexA - indexB;
+        });
+
+        const timelineRecords: TransferRecord[] = [];
+        const registrationEvent = combinedEvents.find(
+          (item) => item.type === "registro"
+        )?.event;
+
+        if (registrationEvent?.args) {
+          const args = registrationEvent.args as {
+            propietario?: string;
+            fechaRegistro?: bigint;
+          };
+          const propietarioRegistro =
+            args?.propietario ?? loteData.propietario;
+          const fechaRegistroEvento =
+            args?.fechaRegistro !== undefined
+              ? Number(args.fechaRegistro)
+              : loteData.fechaRegistro;
+
+          timelineRecords.push({
+            from: "Registro",
+            to: propietarioRegistro,
+            timestamp: fechaRegistroEvento,
+            txHash: registrationEvent.transactionHash,
+            esActual:
+              propietarioRegistro?.toLowerCase() ===
+              loteData.propietario.toLowerCase(),
+          });
+        }
+
+        for (const item of combinedEvents) {
+          if (item.type !== "transferencia") {
+            continue;
+          }
+          const args = item.event.args as {
+            propietarioAnterior?: string;
+            nuevoPropietario?: string;
+            fechaTransferencia?: bigint;
+          };
+          const toAddress = args?.nuevoPropietario ?? "";
+
+          timelineRecords.push({
+            from: args?.propietarioAnterior ?? "",
+            to: toAddress,
+            timestamp:
+              args?.fechaTransferencia !== undefined
+                ? Number(args.fechaTransferencia)
+                : 0,
+            txHash: item.event.transactionHash,
+            esActual:
+              !!toAddress &&
+              toAddress.toLowerCase() ===
+                loteData.propietario.toLowerCase(),
+          });
+        }
+
+        if (timelineRecords.length === 0) {
+          timelineRecords.push({
+            from: "Registro",
+            to: loteData.propietario,
+            timestamp: loteData.fechaRegistro,
+            esActual: true,
+          });
+        }
+
+        setHistorial(timelineRecords);
+      } catch (timelineErr) {
+        console.error(timelineErr);
+        setTimelineError("No se pudo obtener la trazabilidad del lote.");
+      } finally {
+        setIsTimelineLoading(false);
+      }
     } catch (err) {
       console.error(err);
       setError("Ocurrió un error al consultar el lote.");
@@ -125,48 +267,129 @@ export default function TraceabilityForm({
         </a>
       </form>
       {loteInfo && (
-        <div className="w-full max-w-md rounded-lg border border-gray-200 bg-white p-6 shadow">
-          <h2 className="text-lg font-semibold text-gray-800">Datos del lote</h2>
-          <dl className="mt-4 space-y-3 text-sm text-gray-700">
-            <div className="flex justify-between">
-              <dt className="font-medium">Nombre del medicamento</dt>
-              <dd className="text-right">{loteInfo.nombre}</dd>
+        <div className="w-full grid gap-6 md:grid-cols-2">
+          <div className="rounded-lg border bg-white p-6 shadow h-full">
+            <h2 className="text-lg font-semibold text-gray-800">
+              Datos del lote
+            </h2>
+            <dl className="mt-4 space-y-3 text-sm text-gray-700">
+              <div className="flex justify-between">
+                <dt className="font-medium">Nombre del medicamento</dt>
+                <dd className="text-right">{loteInfo.nombre}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="font-medium">Fabricante</dt>
+                <dd className="text-right">{loteInfo.fabricante}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="font-medium">Fecha de fabricación</dt>
+                <dd className="text-right">{formatDate(loteInfo.mfgDate)}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="font-medium">Fecha de expiración</dt>
+                <dd className="text-right">{formatDate(loteInfo.expDate)}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="font-medium">Propietario actual</dt>
+                <dd className="text-right break-all">{loteInfo.propietario}</dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="font-medium">Fecha de registro</dt>
+                <dd className="text-right">
+                  {formatDate(loteInfo.fechaRegistro)}
+                </dd>
+              </div>
+              <div className="flex justify-between">
+                <dt className="font-medium">Última transferencia</dt>
+                <dd className="text-right">
+                  {formatDate(
+                    loteInfo.fechaTransferencia,
+                    "Sin transferencias registradas"
+                  )}
+                </dd>
+              </div>
+            </dl>
+          </div>
+          <div className="rounded-lg border bg-white p-6 shadow h-full flex flex-col">
+            <h2 className="text-lg font-semibold text-gray-800">
+              Trazabilidad del lote
+            </h2>
+            <div className="mt-4 flex-1 text-sm text-gray-700">
+              {isTimelineLoading ? (
+                <p className="text-sm text-gray-500">
+                  Cargando trazabilidad...
+                </p>
+              ) : timelineError ? (
+                <p className="text-sm text-red-500">{timelineError}</p>
+              ) : historial.length === 0 ? (
+                <p className="text-sm text-gray-500">
+                  Sin movimientos registrados
+                </p>
+              ) : (
+                <div className="relative pl-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-200">
+                  {historial.map((registro, index) => {
+                    const isRegistroInicial = registro.from === "Registro";
+                    const isActual = registro.esActual;
+                    const circleClasses = `${
+                      "absolute -left-3 flex h-6 w-6 items-center justify-center rounded-full border"
+                    } ${
+                      isActual
+                        ? "bg-blue-100 border-blue-500 text-blue-700 font-semibold shadow"
+                        : "bg-gray-100 border-gray-300 text-gray-400"
+                    }`;
+                    const cardClasses = isActual
+                      ? "rounded-lg border border-blue-100 bg-blue-50 p-4 shadow-sm"
+                      : "rounded-lg border border-gray-200 bg-gray-50 p-4";
+                    return (
+                      <div
+                        key={
+                          registro.txHash ??
+                          `${registro.to}-${registro.timestamp}-${index}`
+                        }
+                        className="relative mb-6 last:mb-0"
+                      >
+                        <span className={circleClasses} aria-hidden="true" />
+                        <div className={cardClasses}>
+                          <p
+                            className={`break-all font-semibold ${
+                              isActual ? "text-blue-700" : "text-gray-700"
+                            }`}
+                          >
+                            {registro.to || "Dirección desconocida"}
+                          </p>
+                          <p className="text-sm text-gray-600">
+                            {isRegistroInicial
+                              ? "Registrado"
+                              : `Transferido a ${
+                                  registro.to || "destinatario desconocido"
+                                }`}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {formatDate(
+                              registro.timestamp,
+                              "Fecha no disponible"
+                            )}
+                          </p>
+                          {registro.txHash && (
+                            <p className="mt-1 break-all text-xs text-gray-400">
+                              Hash: {registro.txHash}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-            <div className="flex justify-between">
-              <dt className="font-medium">Fabricante</dt>
-              <dd className="text-right">{loteInfo.fabricante}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="font-medium">Fecha de fabricación</dt>
-              <dd className="text-right">{formatDate(loteInfo.mfgDate)}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="font-medium">Fecha de expiración</dt>
-              <dd className="text-right">{formatDate(loteInfo.expDate)}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="font-medium">Propietario actual</dt>
-              <dd className="text-right break-all">{loteInfo.propietario}</dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="font-medium">Fecha de registro</dt>
-              <dd className="text-right">
-                {formatDate(loteInfo.fechaRegistro)}
-              </dd>
-            </div>
-            <div className="flex justify-between">
-              <dt className="font-medium">Última transferencia</dt>
-              <dd className="text-right">
-                {formatDate(
-                  loteInfo.fechaTransferencia,
-                  "Sin transferencias registradas"
-                )}
-              </dd>
-            </div>
-          </dl>
+          </div>
         </div>
       )}
-      <img src="/user.png" alt="Usuario" className="h-40 w-40" />
+      <img
+        src="/user.png"
+        alt="Usuario"
+        className="mt-8 h-40 w-40 self-center"
+      />
     </div>
   );
 }
