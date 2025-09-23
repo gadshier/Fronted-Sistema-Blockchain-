@@ -19,8 +19,6 @@ import { useEffect } from "react";
 
 const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS; // Dirección del contrato desplegado
 
-const CONTRACT_ADDRESS = "0x2479cC5ba9D423A88e0958500E2BDD79bF66fc1C"; // Dirección del contrato desplegado
-
 type EthereumProviderWithEvents = Eip1193Provider & {
   on?: (eventName: string, listener: (...args: unknown[]) => void) => void;
   removeListener?: (
