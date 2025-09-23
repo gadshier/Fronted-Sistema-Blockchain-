@@ -16,8 +16,8 @@ import PageWrapper from "./components/Layout/PageWraper";
 import { useEffect } from "react";
 
 
+const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS; // Dirección del contrato desplegado
 
-const CONTRACT_ADDRESS = "0x4E0fa35846Cf43E9e204C3744607aB66E33827e0"; // Dirección del contrato desplegado
 interface LotInfo {
   medicineName: string;
   seriesCode: string;
