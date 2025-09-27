@@ -230,78 +230,124 @@ export default function TraceabilityForm({
   };
 
   return (
-    <div className="mt-8 flex w-full flex-col items-center gap-8 px-4">
-      <h1 className="text-lg font-bold">Verificación de medicamentos</h1>
+    <div className="w-full space-y-10">
+      <section className="space-y-3">
+        <span className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-slate-600">
+          Auditoría en tiempo real
+        </span>
+        <h1 className="text-3xl font-semibold text-slate-900 sm:text-4xl">
+          Verificación y trazabilidad de medicamentos
+        </h1>
+        <p className="max-w-2xl text-sm leading-relaxed text-slate-500 sm:text-base">
+          Consulta el estado actual y el historial de transferencias de un lote registrado en blockchain.
+        </p>
+      </section>
+
       <form
         onSubmit={handleSubmit}
-        className="flex w-full max-w-md flex-col items-center gap-4"
+        className="rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_20px_45px_-28px_rgba(15,23,42,0.35)] backdrop-blur sm:p-8"
       >
-        <input
-          className="w-full rounded-lg border px-3 py-2 text-sm text-gray-800 outline-none transition-colors hover:border-blue-500 focus:border-blue-500"
-          placeholder="Ingresar ID único"
-          value={codigo}
-          onChange={(event) => setCodigo(event.target.value)}
-          disabled={isLoading}
-        />
-        <button
-          type="submit"
-          disabled={!contract || isLoading}
-          className={`w-full rounded-lg border bg-blue-500 px-4 py-2 text-white transition-colors ${
-            !contract || isLoading
-              ? "cursor-not-allowed opacity-60"
-              : "hover:bg-blue-600"
-          }`}
-        >
-          {isLoading ? "Buscando..." : "Verificar"}
-        </button>
-        {!contract && (
-          <p className="w-full text-center text-sm text-amber-500">
-            Conecta tu wallet para consultar información en la blockchain.
-          </p>
-        )}
-        {error && (
-          <p className="w-full text-center text-sm text-red-500">{error}</p>
-        )}
-        <a href="#" className="text-sm text-blue-600 hover:underline">
-          ¿Dónde encuentro el código o lote?
-        </a>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end">
+          <div className="flex-1 space-y-2">
+            <label className="text-sm font-medium text-slate-600" htmlFor="codigo-lote">
+              Código único del lote
+            </label>
+            <div className="relative">
+              <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-blue-500">
+                <svg
+                  className="h-5 w-5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M3 5h3v3H3z" />
+                  <path d="M8 5h3v3H8z" />
+                  <path d="M13 5h3v3h-3z" />
+                  <path d="M18 5h3v3h-3z" />
+                  <path d="M3 10h3v3H3z" />
+                  <path d="M18 10h3v3h-3z" />
+                  <path d="M3 15h3v3H3z" />
+                  <path d="M8 15h3v3H8z" />
+                  <path d="M13 15h3v3h-3z" />
+                  <path d="M18 15h3v3h-3z" />
+                </svg>
+              </span>
+              <input
+                id="codigo-lote"
+                className="w-full rounded-2xl border border-slate-200/70 bg-white px-4 py-3 pl-12 text-sm text-slate-700 outline-none transition-all hover:border-blue-300 focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
+                placeholder="Ej. CODE-12345"
+                value={codigo}
+                onChange={(event) => setCodigo(event.target.value)}
+                disabled={isLoading}
+              />
+            </div>
+          </div>
+          <button
+            type="submit"
+            disabled={!contract || isLoading}
+            className={`inline-flex items-center justify-center gap-2 rounded-full px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-200/80 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500/70 ${
+              !contract || isLoading
+                ? "cursor-not-allowed bg-blue-300"
+                : "bg-gradient-to-r from-blue-600 via-blue-500 to-blue-400 hover:from-blue-500 hover:via-blue-400 hover:to-blue-300"
+            }`}
+          >
+            {isLoading ? "Buscando lote..." : "Verificar"}
+          </button>
+        </div>
+
+        <div className="mt-4 space-y-2">
+          {!contract && (
+            <p className="text-sm text-amber-500">
+              Conecta tu wallet para consultar información en la blockchain.
+            </p>
+          )}
+          {error && <p className="text-sm text-red-500">{error}</p>}
+          <button
+            type="button"
+            className="text-sm font-medium text-blue-600 hover:underline"
+            onClick={() => alert("El código único se encuentra en la etiqueta del lote registrado.")}
+          >
+            ¿Dónde encuentro el código del lote?
+          </button>
+        </div>
       </form>
+
       {loteInfo && (
-        <div className="w-full grid gap-6 md:grid-cols-2">
-          <div className="rounded-lg border bg-white p-6 shadow h-full">
-            <h2 className="text-lg font-semibold text-gray-800">
-              Datos del lote
-            </h2>
-            <dl className="mt-4 space-y-3 text-sm text-gray-700">
-              <div className="flex justify-between">
-                <dt className="font-medium">Nombre del medicamento</dt>
-                <dd className="text-right">{loteInfo.nombre}</dd>
+        <div className="grid gap-6 lg:grid-cols-2">
+          <div className="flex h-full flex-col rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_20px_45px_-28px_rgba(15,23,42,0.35)]">
+            <h2 className="text-lg font-semibold text-slate-900">Ficha del lote</h2>
+            <dl className="mt-4 space-y-4 text-sm text-slate-600">
+              <div className="flex justify-between gap-4">
+                <dt className="font-medium text-slate-500">Medicamento</dt>
+                <dd className="text-right text-slate-800">{loteInfo.nombre}</dd>
               </div>
-              <div className="flex justify-between">
-                <dt className="font-medium">Fabricante</dt>
-                <dd className="text-right">{loteInfo.fabricante}</dd>
+              <div className="flex justify-between gap-4">
+                <dt className="font-medium text-slate-500">Fabricante</dt>
+                <dd className="text-right text-slate-800">{loteInfo.fabricante}</dd>
               </div>
-              <div className="flex justify-between">
-                <dt className="font-medium">Fecha de fabricación</dt>
-                <dd className="text-right">{formatDate(loteInfo.mfgDate)}</dd>
+              <div className="flex justify-between gap-4">
+                <dt className="font-medium text-slate-500">Fabricación</dt>
+                <dd className="text-right text-slate-800">{formatDate(loteInfo.mfgDate)}</dd>
               </div>
-              <div className="flex justify-between">
-                <dt className="font-medium">Fecha de expiración</dt>
-                <dd className="text-right">{formatDate(loteInfo.expDate)}</dd>
+              <div className="flex justify-between gap-4">
+                <dt className="font-medium text-slate-500">Caducidad</dt>
+                <dd className="text-right text-slate-800">{formatDate(loteInfo.expDate)}</dd>
               </div>
-              <div className="flex justify-between">
-                <dt className="font-medium">Propietario actual</dt>
-                <dd className="text-right break-all">{loteInfo.propietario}</dd>
+              <div className="flex justify-between gap-4">
+                <dt className="font-medium text-slate-500">Propietario actual</dt>
+                <dd className="text-right text-slate-800 break-all">{loteInfo.propietario}</dd>
               </div>
-              <div className="flex justify-between">
-                <dt className="font-medium">Fecha de registro</dt>
-                <dd className="text-right">
-                  {formatDate(loteInfo.fechaRegistro)}
-                </dd>
+              <div className="flex justify-between gap-4">
+                <dt className="font-medium text-slate-500">Registro inicial</dt>
+                <dd className="text-right text-slate-800">{formatDate(loteInfo.fechaRegistro)}</dd>
               </div>
-              <div className="flex justify-between">
-                <dt className="font-medium">Última transferencia</dt>
-                <dd className="text-right">
+              <div className="flex justify-between gap-4">
+                <dt className="font-medium text-slate-500">Última transferencia</dt>
+                <dd className="text-right text-slate-800">
                   {formatDate(
                     loteInfo.fechaTransferencia,
                     "Sin transferencias registradas"
@@ -310,23 +356,18 @@ export default function TraceabilityForm({
               </div>
             </dl>
           </div>
-          <div className="rounded-lg border bg-white p-6 shadow h-full flex flex-col">
-            <h2 className="text-lg font-semibold text-gray-800">
-              Trazabilidad del lote
-            </h2>
-            <div className="mt-4 flex-1 text-sm text-gray-700">
+
+          <div className="flex h-full flex-col rounded-3xl border border-white/70 bg-white/90 p-6 shadow-[0_20px_45px_-28px_rgba(15,23,42,0.35)]">
+            <h2 className="text-lg font-semibold text-slate-900">Trazabilidad del lote</h2>
+            <div className="mt-4 flex-1 text-sm text-slate-600">
               {isTimelineLoading ? (
-                <p className="text-sm text-gray-500">
-                  Cargando trazabilidad...
-                </p>
+                <p className="text-sm text-slate-500">Cargando trazabilidad...</p>
               ) : timelineError ? (
                 <p className="text-sm text-red-500">{timelineError}</p>
               ) : historial.length === 0 ? (
-                <p className="text-sm text-gray-500">
-                  Sin movimientos registrados
-                </p>
+                <p className="text-sm text-slate-500">Sin movimientos registrados.</p>
               ) : (
-                <div className="relative pl-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-gray-200">
+                <div className="relative pl-6 before:absolute before:left-2 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
                   {historial.map((registro, index) => {
                     const isRegistroInicial = registro.from === "Registro";
                     const isActual = registro.esActual;
@@ -335,11 +376,11 @@ export default function TraceabilityForm({
                     } ${
                       isActual
                         ? "bg-blue-100 border-blue-500 text-blue-700 font-semibold shadow"
-                        : "bg-gray-100 border-gray-300 text-gray-400"
+                        : "bg-slate-100 border-slate-300 text-slate-400"
                     }`;
                     const cardClasses = isActual
-                      ? "rounded-lg border border-blue-100 bg-blue-50 p-4 shadow-sm"
-                      : "rounded-lg border border-gray-200 bg-gray-50 p-4";
+                      ? "rounded-2xl border border-blue-100 bg-blue-50/80 p-4 shadow-sm"
+                      : "rounded-2xl border border-slate-100 bg-slate-50 p-4";
                     return (
                       <div
                         key={
@@ -352,26 +393,26 @@ export default function TraceabilityForm({
                         <div className={cardClasses}>
                           <p
                             className={`break-all font-semibold ${
-                              isActual ? "text-blue-700" : "text-gray-700"
+                              isActual ? "text-blue-700" : "text-slate-700"
                             }`}
                           >
                             {registro.to || "Dirección desconocida"}
                           </p>
-                          <p className="text-sm text-gray-600">
+                          <p className="text-sm text-slate-500">
                             {isRegistroInicial
-                              ? "Registrado"
+                              ? "Registro inicial"
                               : `Transferido a ${
                                   registro.to || "destinatario desconocido"
                                 }`}
                           </p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-slate-400">
                             {formatDate(
                               registro.timestamp,
                               "Fecha no disponible"
                             )}
                           </p>
                           {registro.txHash && (
-                            <p className="mt-1 break-all text-xs text-gray-400">
+                            <p className="mt-1 break-all text-xs text-slate-400">
                               Hash: {registro.txHash}
                             </p>
                           )}
@@ -385,11 +426,6 @@ export default function TraceabilityForm({
           </div>
         </div>
       )}
-      <img
-        src="/user.png"
-        alt="Usuario"
-        className="mt-8 h-40 w-40 self-center"
-      />
     </div>
   );
 }
