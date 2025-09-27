@@ -1,13 +1,21 @@
 import { motion } from "framer-motion";
 
-export default function PageWrapper({ children }: { children: React.ReactNode }) {
+interface PageWrapperProps {
+  children: React.ReactNode;
+  className?: string;
+}
+
+export default function PageWrapper({
+  children,
+  className = "",
+}: PageWrapperProps) {
   return (
     <motion.div
-      initial={{ opacity: 0, x: 50 }}   // al entrar
-      animate={{ opacity: 1, x: 0 }}    // visible
-      exit={{ opacity: 0, x: -50 }}     // al salir
-      transition={{ duration: 0.3 }}    // duración de la animación
-      className="w-full min-h-screen flex justify-center items-start"
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -16 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className={`w-full ${className}`}
     >
       {children}
     </motion.div>

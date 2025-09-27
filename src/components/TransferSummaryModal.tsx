@@ -25,54 +25,65 @@ export default function TransferSummaryModal({
     ? new Date(data.fecha).toLocaleDateString()
     : "No registrada";
 
+  const summaryItems: Array<{ label: string; value: string } | null> = [
+    data.numeroLote
+      ? { label: "Número de lote", value: data.numeroLote }
+      : null,
+    { label: "Código de lote", value: data.codigoLote },
+    data.nombreMedicamento
+      ? { label: "Medicamento", value: data.nombreMedicamento }
+      : null,
+    { label: "Destinatario", value: data.destinatario },
+    { label: "Representante", value: data.representante || "No indicado" },
+    { label: "Fecha", value: formattedDate },
+    { label: "Cantidad", value: data.cantidad || "No indicada" },
+    { label: "Cuenta emisora", value: data.emisor || "No conectada" },
+  ];
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-50">
-      <div className="flex flex-col gap-4 bg-white rounded-xl shadow-lg p-6 w-[400px] border-blue-300 border">
-        <h2 className="text-xl font-bold mb-4">
-          ✅ Transferencia completada
-        </h2>
-        {data.numeroLote && (
-          <p>
-            <strong>Número de lote:</strong> {data.numeroLote}
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 backdrop-blur-sm">
+      <div className="w-full max-w-md space-y-6 rounded-[24px] border border-white/70 bg-white/95 p-6 shadow-[0_30px_60px_-28px_rgba(15,23,42,0.55)]">
+        <div className="space-y-2 text-center">
+          <span className="inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-blue-600">
+            Transferencia completada
+          </span>
+          <h2 className="text-2xl font-semibold text-slate-900">
+            Resumen de la operación
+          </h2>
+          <p className="text-sm text-slate-500">
+            El registro quedó asentado en blockchain. Conserva esta información para tus auditorías internas.
           </p>
-        )}
-        <p>
-          <strong>Código de lote:</strong> {data.codigoLote}
-        </p>
-        {data.nombreMedicamento && (
-          <p>
-            <strong>Medicamento:</strong> {data.nombreMedicamento}
-          </p>
-        )}
-        <p>
-          <strong>Destinatario:</strong> {data.destinatario}
-        </p>
-        <p>
-          <strong>Representante:</strong> {data.representante || "No indicado"}
-        </p>
-        <p>
-          <strong>Fecha:</strong> {formattedDate}
-        </p>
-        <p>
-          <strong>Cantidad:</strong> {data.cantidad || "No indicada"}
-        </p>
-        <p>
-          <strong>Cuenta emisora:</strong> {data.emisor || "No conectada"}
-        </p>
-        <div className="flex justify-center">
-          <a
-            href={`https://sepolia.etherscan.io/tx/${data.txHash}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-blue-500 underline block mt-2"
-          >
-            Ver en blockchain
-          </a>
         </div>
-        <div className="flex justify-end mt-4">
+
+        <dl className="space-y-3 text-sm text-slate-600">
+          {summaryItems.filter(Boolean).map((item) => (
+            <div
+              key={item!.label}
+              className="flex items-start justify-between gap-4 rounded-2xl border border-slate-100 bg-slate-50/80 px-4 py-3"
+            >
+              <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+                {item!.label}
+              </dt>
+              <dd className="max-w-[60%] break-all text-right text-slate-800">
+                {item!.value}
+              </dd>
+            </div>
+          ))}
+        </dl>
+
+        <a
+          href={`https://sepolia.etherscan.io/tx/${data.txHash}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center justify-center rounded-full border border-blue-200 bg-blue-50 px-4 py-2 text-sm font-medium text-blue-600 transition-colors hover:border-blue-300 hover:bg-blue-100"
+        >
+          Ver transacción en blockchain
+        </a>
+
+        <div className="flex justify-end">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300"
+            className="rounded-full border border-slate-200 bg-white px-5 py-2 text-sm font-semibold text-slate-600 transition-colors hover:border-blue-200 hover:text-blue-600"
             type="button"
           >
             Cerrar
