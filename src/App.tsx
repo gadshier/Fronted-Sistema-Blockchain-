@@ -1,10 +1,17 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ethers } from "ethers";
 import type { Eip1193Provider } from "ethers";
 import { connectWallet } from "./utils/wallet";
 import abi from "./abi/MedicineRegistry.json";
-import type { MedicineRegistryContract } from "./types/MedicineRegistry";
-import Navbar, { sidebarNavigation } from "./components/Navbar";
+import type {
+  ContractRoleKey,
+  MedicineRegistryContract,
+} from "./types/MedicineRegistry";
+import Navbar, {
+  sidebarNavigation,
+  type NavTabId,
+  type SidebarItem,
+} from "./components/Navbar";
 import LotForm from "./components/LotForm";
 import type { LotData } from "./components/LotForm";
 import LegalForm from "./components/LegalForm";
@@ -14,7 +21,7 @@ import TraceabilityForm from "./components/TraceabilityForm";
 import TransferForm from "./components/TransferForm";
 import { AnimatePresence } from "framer-motion";
 import PageWrapper from "./components/Layout/PageWraper";
-import { useEffect } from "react";
+import RoleManagement from "./components/RoleManagement";
 
 
 const CONTRACT_ADDRESS = import.meta.env.VITE_CONTRACT_ADDRESS; // Dirección del contrato desplegado
@@ -41,8 +48,25 @@ function App() {
   const [showPopup, setShowPopup] = useState(false);
   const [lastLotInfo, setLastLotInfo] = useState<LotInfo | null>(null);
   const [isRegistering, setIsRegistering] = useState(false);
-  const [activeTab, setActiveTab] =
-    useState<'consult' | 'register' | 'transfer'>('register');
+  const [activeTab, setActiveTab] = useState<NavTabId | null>(null);
+  const [roleStatus, setRoleStatus] = useState<
+    Record<ContractRoleKey, boolean>
+  >({
+    ADMIN_ROLE: false,
+    FABRICANTE_ROLE: false,
+    DISTRIBUIDOR_ROLE: false,
+    FARMACIA_ROLE: false,
+  });
+  const [roleHashes, setRoleHashes] = useState<
+    Record<ContractRoleKey, string>
+  >(() => ({
+    ADMIN_ROLE: ethers.id("ADMIN_ROLE"),
+    FABRICANTE_ROLE: ethers.id("FABRICANTE_ROLE"),
+    DISTRIBUIDOR_ROLE: ethers.id("DISTRIBUIDOR_ROLE"),
+    FARMACIA_ROLE: ethers.id("FARMACIA_ROLE"),
+  }));
+  const [isLoadingRoles, setIsLoadingRoles] = useState(false);
+  const [roleError, setRoleError] = useState<string | null>(null);
 
   const [lotData, setLotData] = useState<LotData>({
     medicineName: "",
@@ -105,6 +129,102 @@ function App() {
       eth.removeListener?.("chainChanged", onChainChanged);
     };
   }, []);
+
+  useEffect(() => {
+    if (!contract || !account) {
+      setRoleStatus({
+        ADMIN_ROLE: false,
+        FABRICANTE_ROLE: false,
+        DISTRIBUIDOR_ROLE: false,
+        FARMACIA_ROLE: false,
+      });
+      setIsLoadingRoles(false);
+      setRoleError(null);
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadRoles = async () => {
+      setIsLoadingRoles(true);
+      setRoleError(null);
+      try {
+        const [adminRole, fabricanteRole, distribuidorRole, farmaciaRole] =
+          await Promise.all([
+            contract.ADMIN_ROLE(),
+            contract.FABRICANTE_ROLE(),
+            contract.DISTRIBUIDOR_ROLE(),
+            contract.FARMACIA_ROLE(),
+          ]);
+
+        if (cancelled) return;
+
+        const hashes: Record<ContractRoleKey, string> = {
+          ADMIN_ROLE: adminRole,
+          FABRICANTE_ROLE: fabricanteRole,
+          DISTRIBUIDOR_ROLE: distribuidorRole,
+          FARMACIA_ROLE: farmaciaRole,
+        };
+        setRoleHashes(hashes);
+
+        const [isAdmin, isFabricante, isDistribuidor, isFarmacia] =
+          await Promise.all([
+            contract.hasRole(adminRole, account),
+            contract.hasRole(fabricanteRole, account),
+            contract.hasRole(distribuidorRole, account),
+            contract.hasRole(farmaciaRole, account),
+          ]);
+
+        if (cancelled) return;
+
+        setRoleStatus({
+          ADMIN_ROLE: isAdmin,
+          FABRICANTE_ROLE: isFabricante,
+          DISTRIBUIDOR_ROLE: isDistribuidor,
+          FARMACIA_ROLE: isFarmacia,
+        });
+      } catch (error) {
+        console.error(error);
+        if (!cancelled) {
+          setRoleError(
+            "No fue posible recuperar los roles asignados. Intenta nuevamente."
+          );
+        }
+      } finally {
+        if (!cancelled) {
+          setIsLoadingRoles(false);
+        }
+      }
+    };
+
+    void loadRoles();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [contract, account]);
+
+  const availableTabs = useMemo<SidebarItem[]>(() => {
+    return sidebarNavigation.filter((item) => {
+      if (!item.requiredRoles?.length) return true;
+      return item.requiredRoles.some((role) => roleStatus[role]);
+    });
+  }, [roleStatus]);
+
+  useEffect(() => {
+    if (!availableTabs.length) {
+      setActiveTab(null);
+      return;
+    }
+
+    const isActiveAvailable = availableTabs.some(
+      (item) => item.id === activeTab
+    );
+
+    if (!isActiveAvailable) {
+      setActiveTab(availableTabs[0].id);
+    }
+  }, [availableTabs, activeTab]);
 
   const handleLotChange = (field: keyof LotData, value: string) => {
     setLotData((prev) => ({ ...prev, [field]: value }));
@@ -175,7 +295,8 @@ function App() {
           account={account}
           isConnecting={isConnecting}
           activeTab={activeTab}
-          onNavigate={setActiveTab}
+          onNavigate={(tab) => setActiveTab(tab)}
+          items={availableTabs}
         />
 
         <div className="relative flex flex-1 flex-col">
@@ -213,7 +334,7 @@ function App() {
                 </p>
               </div>
               <div className="grid gap-2 sm:grid-cols-3">
-                {sidebarNavigation.map((item) => {
+                {availableTabs.map((item) => {
                   const isActive = activeTab === item.id;
                   return (
                     <button
@@ -233,6 +354,28 @@ function App() {
                 })}
               </div>
             </div>
+
+            {account && isLoadingRoles && (
+              <div className="mb-4 rounded-2xl border border-blue-100 bg-blue-50/70 p-4 text-sm text-blue-700">
+                Cargando roles asignados para tu cuenta...
+              </div>
+            )}
+
+            {roleError && (
+              <div className="mb-4 rounded-2xl border border-red-100 bg-red-50/70 p-4 text-sm text-red-600">
+                {roleError}
+              </div>
+            )}
+
+            {account &&
+              !isLoadingRoles &&
+              !roleError &&
+              availableTabs.length === 0 && (
+                <div className="mb-4 rounded-2xl border border-amber-100 bg-amber-50/70 p-4 text-sm text-amber-600">
+                  Tu cuenta no tiene módulos asignados actualmente. Solicita a un
+                  administrador que te otorgue un rol operativo.
+                </div>
+              )}
 
             <AnimatePresence mode="wait">
               {activeTab === "register" && (
@@ -301,6 +444,15 @@ function App() {
               {activeTab === "transfer" && (
                 <PageWrapper key="transfer" className="w-full">
                   <TransferForm contract={contract} account={account} />
+                </PageWrapper>
+              )}
+
+              {activeTab === "roles" && (
+                <PageWrapper key="roles" className="w-full">
+                  <RoleManagement
+                    contract={contract}
+                    roleHashes={roleHashes}
+                  />
                 </PageWrapper>
               )}
             </AnimatePresence>
