@@ -1,23 +1,31 @@
 import type { ReactNode } from "react";
+import type { ContractRoleKey } from "../types/MedicineRegistry";
+
+export type NavTabId = "consult" | "register" | "transfer" | "roles";
+
+export type SidebarItem = {
+  id: NavTabId;
+  label: string;
+  helper: string;
+  icon: ReactNode;
+  requiredRoles?: ContractRoleKey[];
+};
 
 interface NavbarProps {
   onConnect: () => void;
   account?: string;
   isConnecting?: boolean;
-  activeTab: "consult" | "register" | "transfer";
-  onNavigate: (tab: "consult" | "register" | "transfer") => void;
+  activeTab: NavTabId | null;
+  onNavigate: (tab: NavTabId) => void;
+  items: SidebarItem[];
 }
 
-export const sidebarNavigation: Array<{
-  id: "consult" | "register" | "transfer";
-  label: string;
-  helper: string;
-  icon: ReactNode;
-}> = [
+export const sidebarNavigation: SidebarItem[] = [
   {
     id: "register",
     label: "Registrar lote",
     helper: "Captura en blockchain",
+    requiredRoles: ["FABRICANTE_ROLE", "ADMIN_ROLE"],
     icon: (
       <svg
         className="h-5 w-5"
@@ -38,6 +46,7 @@ export const sidebarNavigation: Array<{
     id: "consult",
     label: "Trazabilidad",
     helper: "Verifica lotes",
+    requiredRoles: ["FARMACIA_ROLE", "ADMIN_ROLE"],
     icon: (
       <svg
         className="h-5 w-5"
@@ -58,6 +67,7 @@ export const sidebarNavigation: Array<{
     id: "transfer",
     label: "Transferir",
     helper: "Cede custodia",
+    requiredRoles: ["DISTRIBUIDOR_ROLE", "ADMIN_ROLE"],
     icon: (
       <svg
         className="h-5 w-5"
@@ -74,9 +84,29 @@ export const sidebarNavigation: Array<{
       </svg>
     ),
   },
+  {
+    id: "roles",
+    label: "Roles",
+    helper: "Gestiona permisos",
+    requiredRoles: ["ADMIN_ROLE"],
+    icon: (
+      <svg
+        className="h-5 w-5"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M12 3 4 6v6c0 5 3.4 9.3 7 10 3.6-.7 7-5 7-10V6l-6-3Z" />
+        <circle cx="12" cy="10" r="2.5" />
+        <path d="M12 13.5c-2.21 0-4.33 1.1-5.6 2.94" />
+      </svg>
+    ),
+  },
 ];
-
-const navItems = sidebarNavigation;
 
 export default function Navbar({
   onConnect,
@@ -84,6 +114,7 @@ export default function Navbar({
   isConnecting,
   activeTab,
   onNavigate,
+  items,
 }: NavbarProps) {
   const isConnected = Boolean(account);
 
@@ -125,7 +156,7 @@ export default function Navbar({
         </div>
 
         <nav className="space-y-2">
-          {navItems.map((item) => {
+          {items.map((item) => {
             const isActive = activeTab === item.id;
             return (
               <button
@@ -137,6 +168,7 @@ export default function Navbar({
                     : "border-transparent bg-white/50 text-slate-600 hover:border-blue-100 hover:bg-blue-50/60"
                 }`}
                 type="button"
+                disabled={!items.length}
               >
                 <span className="flex items-center gap-4">
                   <span
@@ -196,4 +228,3 @@ export default function Navbar({
     </aside>
   );
 }
-
