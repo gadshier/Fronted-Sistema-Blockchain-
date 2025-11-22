@@ -56,6 +56,7 @@ export default function TransferForm({
 
     const trimmedCodigo = codigoLote.trim();
     const trimmedDestinatario = destinatario.trim();
+    const trimmedCantidad = cantidad.trim();
 
     if (!trimmedCodigo) {
       const message = "Ingresa el código del lote a transferir.";
@@ -78,17 +79,38 @@ export default function TransferForm({
       return;
     }
 
+    let parsedCantidad: bigint;
+    try {
+      parsedCantidad = BigInt(trimmedCantidad);
+    } catch (error) {
+      const message = "Ingresa una cantidad válida a transferir.";
+      setError(message);
+      alert(message);
+      return;
+    }
+
+    if (parsedCantidad <= 0n) {
+      const message = "La cantidad debe ser mayor a cero.";
+      setError(message);
+      alert(message);
+      return;
+    }
+
     try {
       setIsTransferring(true);
       const loteId = ethers.keccak256(ethers.toUtf8Bytes(trimmedCodigo));
-      const tx = await contract.transferirLote(loteId, trimmedDestinatario);
+      const tx = await contract.transferirLote(
+        loteId,
+        trimmedDestinatario,
+        parsedCantidad
+      );
       await tx.wait();
 
       const summary: TransferSummaryData = {
         codigoLote: trimmedCodigo,
         destinatario: trimmedDestinatario,
         fecha,
-        cantidad,
+        cantidad: trimmedCantidad,
         representante,
         emisor: account,
         txHash: tx.hash,

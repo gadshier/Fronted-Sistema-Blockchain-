@@ -6,6 +6,13 @@ export type ContractRoleKey =
   | "DISTRIBUIDOR_ROLE"
   | "FARMACIA_ROLE";
 
+export interface ResponsableTecnico {
+  nombre: string;
+  dni: string;
+  telefono: string;
+  correo: string;
+}
+
 export interface MedicineRegistryContract {
   ADMIN_ROLE: () => Promise<string>;
   FABRICANTE_ROLE: () => Promise<string>;
@@ -25,16 +32,30 @@ export interface MedicineRegistryContract {
     manufacturer: string,
     mfgDate: number,
     expDate: number,
-    serial: string
+    serial: string,
+    responsableTecnico: ResponsableTecnico,
+    cantidad: bigint
   ) => Promise<ContractTransactionResponse>;
   transferirLote: (
     loteId: string,
-    nuevoPropietario: string
+    nuevoPropietario: string,
+    cantidad: bigint
   ) => Promise<ContractTransactionResponse>;
   obtenerLote: (
     loteId: string
   ) =>
     Promise<
-      [string, string, bigint, bigint, string, bigint, bigint, boolean]
+      [
+        string,
+        string,
+        bigint,
+        bigint,
+        string,
+        bigint,
+        bigint,
+        boolean,
+        ResponsableTecnico,
+        bigint
+      ]
     >;
 }

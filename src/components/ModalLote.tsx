@@ -6,6 +6,13 @@ interface LotInfo {
   expDate: string;
   account: string;
   txHash: string;
+  quantity: string;
+  responsable: {
+    name: string;
+    id: string;
+    phone: string;
+    email: string;
+  };
 }
 
 interface LotPopupProps {
@@ -46,6 +53,12 @@ export default function LotPopup({ info, onClose }: LotPopupProps) {
           </div>
           <div className="flex items-start justify-between gap-4 rounded-2xl border border-slate-100 bg-slate-50/80 px-4 py-3">
             <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Cantidad registrada
+            </dt>
+            <dd className="text-right text-slate-800">{info.quantity}</dd>
+          </div>
+          <div className="flex items-start justify-between gap-4 rounded-2xl border border-slate-100 bg-slate-50/80 px-4 py-3">
+            <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
               Vencimiento
             </dt>
             <dd className="text-right text-slate-800">{info.expDate}</dd>
@@ -55,6 +68,21 @@ export default function LotPopup({ info, onClose }: LotPopupProps) {
               Registrado por
             </dt>
             <dd className="break-all text-right text-slate-800">{info.account}</dd>
+          </div>
+          <div className="flex items-start justify-between gap-4 rounded-2xl border border-slate-100 bg-slate-50/80 px-4 py-3">
+            <dt className="text-xs font-semibold uppercase tracking-wide text-slate-500">
+              Responsable técnico
+            </dt>
+            <dd className="text-right text-slate-800">
+              <p className="font-semibold">{info.responsable.name}</p>
+              <p className="text-xs text-slate-500">DNI/RUC: {info.responsable.id}</p>
+              {info.responsable.phone && (
+                <p className="text-xs text-slate-500">Tel: {info.responsable.phone}</p>
+              )}
+              {info.responsable.email && (
+                <p className="text-xs text-slate-500">Correo: {info.responsable.email}</p>
+              )}
+            </dd>
           </div>
         </dl>
 

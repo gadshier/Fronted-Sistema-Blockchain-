@@ -39,6 +39,8 @@ interface LotInfo {
   expDate: string;
   account: string;
   txHash: string;
+  quantity: string;
+  responsable: LegalData;
   transactionHash?: string;
 }
 function App() {
@@ -75,7 +77,8 @@ function App() {
     mfgDate: "",
     expDate: "",
     healthReg: "",
-    
+    quantity: "",
+
   });
 
   const [legalData, setLegalData] = useState<LegalData>({
@@ -256,12 +259,40 @@ function App() {
       const mfg = Math.floor(mfgMs / 1000);
       const exp = Math.floor(expMs / 1000);
 
+      const parsedQuantity = lotData.quantity.trim();
+      let quantityValue: bigint;
+      try {
+        quantityValue = BigInt(parsedQuantity);
+      } catch (error) {
+        alert("Ingresa una cantidad válida para el lote.");
+        return;
+      }
+
+      if (quantityValue <= 0n) {
+        alert("La cantidad debe ser mayor a cero.");
+        return;
+      }
+
+      const responsable = {
+        nombre: legalData.name.trim(),
+        dni: legalData.id.trim(),
+        telefono: legalData.phone.trim(),
+        correo: legalData.email.trim(),
+      };
+
+      if (!responsable.nombre || !responsable.dni) {
+        alert("Completa los datos del responsable técnico.");
+        return;
+      }
+
       const tx = await contract.registrarLote(
         lotData.medicineName,
         lotData.activeIngredient,
         mfg,
         exp,
-        lotData.seriesCode
+        lotData.seriesCode,
+        responsable,
+        quantityValue
       );
 
       await tx.wait();
@@ -273,6 +304,8 @@ function App() {
         expDate: lotData.expDate,
         account: account,
         txHash: tx.hash,
+        quantity: lotData.quantity,
+        responsable: legalData,
       });
 
       setShowPopup(true); // Abrir el popup
