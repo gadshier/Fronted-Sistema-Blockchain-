@@ -8,6 +8,7 @@ export interface LotData {
 }
 
 const medicamentos = [
+  // Ejemplos iniciales
   {
     nombre: "Paracetamol 500 mg",
     principioActivo: "Paracetamol",
@@ -33,7 +34,75 @@ const medicamentos = [
     principioActivo: "Metformina",
     registroSanitario: "DIG-2025-0005",
   },
+
+  // Todos los medicamentos de la lista → principio activo = Paracetamol
+  {
+    nombre: "PARACETAMOL 500 mg",
+    principioActivo: "Paracetamol",
+    registroSanitario: "E069PE",
+  },
+  {
+    nombre: "MEDIFLU SUSPENSION",
+    principioActivo: "Paracetamol",
+    registroSanitario: "E10076",
+  },
+  {
+    nombre: "MULTI-SYMPTON TYLENOL COLD MED TABLETA",
+    principioActivo: "Paracetamol",
+    registroSanitario: "E10158",
+  },
+  {
+    nombre: "SYNMAL COMPRIMIDO",
+    principioActivo: "Paracetamol",
+    registroSanitario: "E10451",
+  },
+  {
+    nombre: "VITAPYRENA 500 mg GRANULOS",
+    principioActivo: "Paracetamol",
+    registroSanitario: "E10484",
+  },
+  {
+    nombre: "NERUPOL 500 mg TABLETA",
+    principioActivo: "Paracetamol",
+    registroSanitario: "E10655",
+  },
+  {
+    nombre: "FLECTADOL 250mg + 300mg CAPSULA BLANDA",
+    principioActivo: "Paracetamol",
+    registroSanitario: "E10677",
+  },
+  {
+    nombre: "PUNACAP COMPRIMIDO",
+    principioActivo: "Paracetamol",
+    registroSanitario: "E10831",
+  },
+  {
+    nombre: "SUDAPOL 500 mg TABLETA",
+    principioActivo: "Paracetamol",
+    registroSanitario: "E11354",
+  },
+  {
+    nombre: "NASTIFRIN COMPUESTO COMPRIMIDO RECUBIERTO",
+    principioActivo: "Paracetamol",
+    registroSanitario: "E11455",
+  },
+  {
+    nombre: "TERAGRIP TABLETA",
+    principioActivo: "Paracetamol",
+    registroSanitario: "E11479",
+  },
+  {
+    nombre: "TERAGRIP GRANULADO PEDIATRICO GRANULOS",
+    principioActivo: "Paracetamol",
+    registroSanitario: "E11484",
+  },
+  {
+    nombre: "TERAGRIP JARABE",
+    principioActivo: "Paracetamol",
+    registroSanitario: "E11485",
+  },
 ];
+
 
 const iconClass = "h-5 w-5 text-blue-500";
 
