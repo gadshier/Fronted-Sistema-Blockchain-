@@ -20,6 +20,13 @@ interface LoteInfo {
   propietario: string;
   fechaRegistro: number;
   fechaTransferencia: number;
+  responsableTecnico: {
+    nombre: string;
+    dni: string;
+    telefono: string;
+    correo: string;
+  };
+  cantidad: number;
 }
 
 type TransferRecord = {
@@ -28,6 +35,7 @@ type TransferRecord = {
   timestamp: number;
   txHash?: string;
   esActual: boolean;
+  cantidad?: number;
 };
 
 export default function TraceabilityForm({
@@ -82,6 +90,8 @@ export default function TraceabilityForm({
         fechaRegistro,
         fechaTransferencia,
         existe,
+        responsableTecnico,
+        cantidad,
       ] = await contract.obtenerLote(loteId);
 
       if (!existe) {
@@ -97,6 +107,13 @@ export default function TraceabilityForm({
         propietario,
         fechaRegistro: Number(fechaRegistro),
         fechaTransferencia: Number(fechaTransferencia),
+        responsableTecnico: {
+          nombre: responsableTecnico?.nombre ?? "",
+          dni: responsableTecnico?.dni ?? "",
+          telefono: responsableTecnico?.telefono ?? "",
+          correo: responsableTecnico?.correo ?? "",
+        },
+        cantidad: Number(cantidad),
       };
 
       setLoteInfo(loteData);
@@ -160,6 +177,7 @@ export default function TraceabilityForm({
           const args = registrationEvent.args as {
             propietario?: string;
             fechaRegistro?: bigint;
+            cantidad?: bigint;
           };
           const propietarioRegistro =
             args?.propietario ?? loteData.propietario;
@@ -176,6 +194,9 @@ export default function TraceabilityForm({
             esActual:
               propietarioRegistro?.toLowerCase() ===
               loteData.propietario.toLowerCase(),
+            cantidad: args?.cantidad
+              ? Number(args.cantidad)
+              : loteData.cantidad,
           });
         }
 
@@ -187,6 +208,7 @@ export default function TraceabilityForm({
             propietarioAnterior?: string;
             nuevoPropietario?: string;
             fechaTransferencia?: bigint;
+            cantidad?: bigint;
           };
           const toAddress = args?.nuevoPropietario ?? "";
 
@@ -202,6 +224,7 @@ export default function TraceabilityForm({
               !!toAddress &&
               toAddress.toLowerCase() ===
                 loteData.propietario.toLowerCase(),
+            cantidad: args?.cantidad ? Number(args.cantidad) : undefined,
           });
         }
 
@@ -211,6 +234,7 @@ export default function TraceabilityForm({
             to: loteData.propietario,
             timestamp: loteData.fechaRegistro,
             esActual: true,
+            cantidad: loteData.cantidad,
           });
         }
 
@@ -354,6 +378,23 @@ export default function TraceabilityForm({
                   )}
                 </dd>
               </div>
+              <div className="flex justify-between gap-4">
+                <dt className="font-medium text-slate-500">Cantidad disponible</dt>
+                <dd className="text-right text-slate-800">{loteInfo.cantidad}</dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="font-medium text-slate-500">Responsable técnico</dt>
+                <dd className="text-right text-slate-800">
+                  <p className="font-semibold">{loteInfo.responsableTecnico.nombre}</p>
+                  <p className="text-xs text-slate-500">DNI/RUC: {loteInfo.responsableTecnico.dni}</p>
+                  {loteInfo.responsableTecnico.telefono && (
+                    <p className="text-xs text-slate-500">Tel: {loteInfo.responsableTecnico.telefono}</p>
+                  )}
+                  {loteInfo.responsableTecnico.correo && (
+                    <p className="text-xs text-slate-500">Correo: {loteInfo.responsableTecnico.correo}</p>
+                  )}
+                </dd>
+              </div>
             </dl>
           </div>
 
@@ -411,6 +452,11 @@ export default function TraceabilityForm({
                               "Fecha no disponible"
                             )}
                           </p>
+                          {registro.cantidad !== undefined && (
+                            <p className="mt-1 text-xs font-semibold text-slate-500">
+                              Cantidad: {registro.cantidad}
+                            </p>
+                          )}
                           {registro.txHash && (
                             <p className="mt-1 break-all text-xs text-slate-400">
                               Hash: {registro.txHash}

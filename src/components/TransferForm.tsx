@@ -6,6 +6,47 @@ import TransferSummaryModal, {
   type TransferSummaryData,
 } from "./TransferSummaryModal";
 
+interface ErrorModalProps {
+  message: string;
+  onClose: () => void;
+}
+
+function ErrorModal({ message, onClose }: ErrorModalProps) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4 backdrop-blur-sm">
+      <div className="w-full max-w-md space-y-6 rounded-[24px] border border-red-100 bg-white/95 p-6 shadow-[0_30px_60px_-28px_rgba(239,68,68,0.35)]">
+        <div className="space-y-2 text-center">
+          <span className="inline-flex items-center gap-2 rounded-full bg-red-50 px-4 py-1 text-xs font-semibold uppercase tracking-wide text-red-600">
+            Transacción rechazada
+          </span>
+          <h2 className="text-2xl font-semibold text-slate-900">Revisa la solicitud</h2>
+          <p className="text-sm text-slate-500">
+            La red devolvió un error al intentar registrar la transferencia.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-red-100 bg-red-50/80 px-4 py-3 text-sm text-red-700">
+          {message}
+        </div>
+
+        <p className="text-xs text-slate-500">
+          Verifica la cantidad disponible, la dirección del destinatario y vuelve a intentar. Los detalles técnicos están en la consola del navegador para diagnóstico.
+        </p>
+
+        <div className="flex justify-end">
+          <button
+            onClick={onClose}
+            className="rounded-full border border-slate-200 bg-white px-5 py-2 text-sm font-semibold text-slate-600 transition-colors hover:border-red-200 hover:text-red-600"
+            type="button"
+          >
+            Entendido
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface TransferFormProps {
   contract: MedicineRegistryContract | null;
   account: string;
@@ -31,6 +72,9 @@ export default function TransferForm({
   const [lastSummary, setLastSummary] = useState<TransferSummaryData | null>(
     null
   );
+  const [errorModalMessage, setErrorModalMessage] = useState<string | null>(
+    null
+  );
 
   const resetForm = () => {
     setNumeroLote("");
@@ -46,49 +90,66 @@ export default function TransferForm({
     event.preventDefault();
     setError(null);
     setSuccessMessage(null);
+    setErrorModalMessage(null);
 
     if (!contract) {
       const message = "Conecta tu wallet antes de transferir un lote.";
       setError(message);
-      alert(message);
       return;
     }
 
     const trimmedCodigo = codigoLote.trim();
     const trimmedDestinatario = destinatario.trim();
+    const trimmedCantidad = cantidad.trim();
 
     if (!trimmedCodigo) {
       const message = "Ingresa el código del lote a transferir.";
       setError(message);
-      alert(message);
       return;
     }
 
     if (!trimmedDestinatario) {
       const message = "Ingresa la dirección del destinatario.";
       setError(message);
-      alert(message);
       return;
     }
 
     if (!ethers.isAddress(trimmedDestinatario)) {
       const message = "La dirección del destinatario no es válida.";
       setError(message);
-      alert(message);
+      return;
+    }
+
+    let parsedCantidad: bigint;
+    try {
+      parsedCantidad = BigInt(trimmedCantidad);
+    } catch (error) {
+      const message = "Ingresa una cantidad válida a transferir.";
+      setError(message);
+      return;
+    }
+
+    if (parsedCantidad <= 0n) {
+      const message = "La cantidad debe ser mayor a cero.";
+      setError(message);
       return;
     }
 
     try {
       setIsTransferring(true);
       const loteId = ethers.keccak256(ethers.toUtf8Bytes(trimmedCodigo));
-      const tx = await contract.transferirLote(loteId, trimmedDestinatario);
+      const tx = await contract.transferirLote(
+        loteId,
+        trimmedDestinatario,
+        parsedCantidad
+      );
       await tx.wait();
 
       const summary: TransferSummaryData = {
         codigoLote: trimmedCodigo,
         destinatario: trimmedDestinatario,
         fecha,
-        cantidad,
+        cantidad: trimmedCantidad,
         representante,
         emisor: account,
         txHash: tx.hash,
@@ -103,12 +164,30 @@ export default function TransferForm({
       );
     } catch (err) {
       console.error(err);
-      const message =
-        err instanceof Error
-          ? err.message
-          : "La transferencia fue cancelada o falló.";
-      setError(message);
-      alert(message);
+      const ethersError = err as {
+        message?: string;
+        reason?: string;
+        shortMessage?: string;
+        error?: { message?: string };
+        info?: { error?: { message?: string } };
+      };
+
+      const parsedMessage =
+        ethersError?.reason ||
+        ethersError?.shortMessage ||
+        ethersError?.error?.message ||
+        ethersError?.info?.error?.message ||
+        ethersError?.message ||
+        "La transferencia fue cancelada o falló.";
+
+      const friendlyMessage = parsedMessage.includes(
+        "Cantidad solicitada mayor a la disponible"
+      )
+        ? "La cantidad solicitada supera la disponibilidad del lote. Ajusta la cantidad y vuelve a intentarlo."
+        : parsedMessage;
+
+      setError(friendlyMessage);
+      setErrorModalMessage(friendlyMessage);
     } finally {
       setIsTransferring(false);
     }
@@ -437,6 +516,12 @@ export default function TransferForm({
           <span className="h-2 w-2 rounded-full bg-blue-500" aria-hidden="true" />
           Última transferencia
         </button>
+      )}
+      {errorModalMessage && (
+        <ErrorModal
+          message={errorModalMessage}
+          onClose={() => setErrorModalMessage(null)}
+        />
       )}
     </>
   );

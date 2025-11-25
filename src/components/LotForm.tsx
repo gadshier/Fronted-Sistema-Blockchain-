@@ -5,6 +5,7 @@ export interface LotData {
   mfgDate: string;
   expDate: string;
   healthReg: string;
+  quantity: string;
 }
 
 const medicamentos = [
@@ -336,6 +337,26 @@ export default function LotForm({ data, onChange, onGenerateCode }: LotFormProps
               />
             </div>
           </div>
+        </div>
+
+        <div className="space-y-2">
+          <label htmlFor="quantity" className="text-sm font-medium text-slate-600">
+            Cantidad disponible en el lote
+          </label>
+          <div className="relative">
+            <span className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2">
+              <HashIcon />
+            </span>
+            <input
+              id="quantity"
+              type="number"
+              min="0"
+              className="w-full rounded-2xl border border-slate-200/70 bg-white px-4 py-3 pl-12 text-sm text-slate-700 outline-none transition-all hover:border-blue-300 focus:border-blue-400 focus:ring-2 focus:ring-blue-200"
+              value={data.quantity}
+              onChange={(event) => onChange("quantity", event.target.value)}
+            />
+          </div>
+          <p className="text-xs text-slate-500">Registra el número total de unidades en este lote.</p>
         </div>
       </div>
     </section>

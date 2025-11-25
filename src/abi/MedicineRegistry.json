@@ -1,64 +1,45 @@
 {
-  "_format": "hh3-artifact-1",
   "contractName": "MedicineRegistryV2",
-  "sourceName": "contracts/MedicineRegistryV2.sol",
   "abi": [
     {
       "inputs": [
-        {
-          "internalType": "address",
-          "name": "admin",
-          "type": "address"
-        }
+        { "internalType": "address", "name": "admin", "type": "address" }
       ],
       "stateMutability": "nonpayable",
       "type": "constructor"
     },
+    { "inputs": [], "name": "AccessControlBadConfirmation", "type": "error" },
+    {
+      "inputs": [
+        { "internalType": "address", "name": "account", "type": "address" },
+        { "internalType": "bytes32", "name": "neededRole", "type": "bytes32" }
+      ],
+      "name": "AccessControlUnauthorizedAccount",
+      "type": "error"
+    },
     {
       "anonymous": false,
       "inputs": [
+        { "indexed": true, "internalType": "bytes32", "name": "loteId", "type": "bytes32" },
+        { "indexed": false, "internalType": "string", "name": "nombre", "type": "string" },
+        { "indexed": false, "internalType": "string", "name": "fabricante", "type": "string" },
+        { "indexed": false, "internalType": "uint256", "name": "fechaFabricacion", "type": "uint256" },
+        { "indexed": false, "internalType": "uint256", "name": "fechaCaducidad", "type": "uint256" },
+        { "indexed": true, "internalType": "address", "name": "propietario", "type": "address" },
+        { "indexed": false, "internalType": "uint256", "name": "fechaRegistro", "type": "uint256" },
         {
-          "indexed": true,
-          "internalType": "bytes32",
-          "name": "loteId",
-          "type": "bytes32"
-        },
-        {
+          "components": [
+            { "internalType": "string", "name": "nombre", "type": "string" },
+            { "internalType": "string", "name": "dni", "type": "string" },
+            { "internalType": "string", "name": "telefono", "type": "string" },
+            { "internalType": "string", "name": "correo", "type": "string" }
+          ],
           "indexed": false,
-          "internalType": "string",
-          "name": "nombre",
-          "type": "string"
+          "internalType": "struct MedicineRegistryV2.ResponsableTecnico",
+          "name": "responsableTecnico",
+          "type": "tuple"
         },
-        {
-          "indexed": false,
-          "internalType": "string",
-          "name": "fabricante",
-          "type": "string"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "fechaFabricacion",
-          "type": "uint256"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "fechaCaducidad",
-          "type": "uint256"
-        },
-        {
-          "indexed": true,
-          "internalType": "address",
-          "name": "propietario",
-          "type": "address"
-        },
-        {
-          "indexed": false,
-          "internalType": "uint256",
-          "name": "fechaRegistro",
-          "type": "uint256"
-        }
+        { "indexed": false, "internalType": "uint256", "name": "cantidad", "type": "uint256" }
       ],
       "name": "RegistroLote",
       "type": "event"
@@ -66,12 +47,47 @@
     {
       "anonymous": false,
       "inputs": [
+        { "indexed": true, "internalType": "bytes32", "name": "role", "type": "bytes32" },
         {
           "indexed": true,
           "internalType": "bytes32",
-          "name": "loteId",
+          "name": "previousAdminRole",
           "type": "bytes32"
         },
+        {
+          "indexed": true,
+          "internalType": "bytes32",
+          "name": "newAdminRole",
+          "type": "bytes32"
+        }
+      ],
+      "name": "RoleAdminChanged",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": true, "internalType": "bytes32", "name": "role", "type": "bytes32" },
+        { "indexed": true, "internalType": "address", "name": "account", "type": "address" },
+        { "indexed": true, "internalType": "address", "name": "sender", "type": "address" }
+      ],
+      "name": "RoleGranted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": true, "internalType": "bytes32", "name": "role", "type": "bytes32" },
+        { "indexed": true, "internalType": "address", "name": "account", "type": "address" },
+        { "indexed": true, "internalType": "address", "name": "sender", "type": "address" }
+      ],
+      "name": "RoleRevoked",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        { "indexed": true, "internalType": "bytes32", "name": "loteId", "type": "bytes32" },
         {
           "indexed": true,
           "internalType": "address",
@@ -84,6 +100,7 @@
           "name": "nuevoPropietario",
           "type": "address"
         },
+        { "indexed": false, "internalType": "uint256", "name": "cantidad", "type": "uint256" },
         {
           "indexed": false,
           "internalType": "uint256",
@@ -98,11 +115,7 @@
       "inputs": [],
       "name": "ADMIN_ROLE",
       "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
-        }
+        { "internalType": "bytes32", "name": "", "type": "bytes32" }
       ],
       "stateMutability": "view",
       "type": "function"
@@ -111,11 +124,7 @@
       "inputs": [],
       "name": "DEFAULT_ADMIN_ROLE",
       "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
-        }
+        { "internalType": "bytes32", "name": "", "type": "bytes32" }
       ],
       "stateMutability": "view",
       "type": "function"
@@ -124,24 +133,7 @@
       "inputs": [],
       "name": "DISTRIBUIDOR_ROLE",
       "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "FARMACIA_ROLE",
-      "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
-        }
+        { "internalType": "bytes32", "name": "", "type": "bytes32" }
       ],
       "stateMutability": "view",
       "type": "function"
@@ -150,27 +142,24 @@
       "inputs": [],
       "name": "FABRICANTE_ROLE",
       "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
-        }
+        { "internalType": "bytes32", "name": "", "type": "bytes32" }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "FARMACIA_ROLE",
+      "outputs": [
+        { "internalType": "bytes32", "name": "", "type": "bytes32" }
       ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "role",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "address",
-          "name": "account",
-          "type": "address"
-        }
+        { "internalType": "bytes32", "name": "role", "type": "bytes32" },
+        { "internalType": "address", "name": "account", "type": "address" }
       ],
       "name": "asignarRol",
       "outputs": [],
@@ -179,133 +168,112 @@
     },
     {
       "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "role",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "address",
-          "name": "account",
-          "type": "address"
-        }
+        { "internalType": "bytes32", "name": "role", "type": "bytes32" }
+      ],
+      "name": "getRoleAdmin",
+      "outputs": [
+        { "internalType": "bytes32", "name": "", "type": "bytes32" }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "bytes32", "name": "role", "type": "bytes32" },
+        { "internalType": "address", "name": "account", "type": "address" }
+      ],
+      "name": "grantRole",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "bytes32", "name": "role", "type": "bytes32" },
+        { "internalType": "address", "name": "account", "type": "address" }
       ],
       "name": "hasRole",
       "outputs": [
-        {
-          "internalType": "bool",
-          "name": "",
-          "type": "bool"
-        }
+        { "internalType": "bool", "name": "", "type": "bool" }
       ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "loteId",
-          "type": "bytes32"
-        }
+        { "internalType": "bytes32", "name": "loteId", "type": "bytes32" }
       ],
       "name": "obtenerLote",
       "outputs": [
+        { "internalType": "string", "name": "nombre", "type": "string" },
+        { "internalType": "string", "name": "fabricante", "type": "string" },
+        { "internalType": "uint256", "name": "fechaFabricacion", "type": "uint256" },
+        { "internalType": "uint256", "name": "fechaCaducidad", "type": "uint256" },
+        { "internalType": "address", "name": "propietario", "type": "address" },
+        { "internalType": "uint256", "name": "fechaRegistro", "type": "uint256" },
+        { "internalType": "uint256", "name": "fechaTransferencia", "type": "uint256" },
+        { "internalType": "bool", "name": "existe", "type": "bool" },
         {
-          "internalType": "string",
-          "name": "nombre",
-          "type": "string"
+          "components": [
+            { "internalType": "string", "name": "nombre", "type": "string" },
+            { "internalType": "string", "name": "dni", "type": "string" },
+            { "internalType": "string", "name": "telefono", "type": "string" },
+            { "internalType": "string", "name": "correo", "type": "string" }
+          ],
+          "internalType": "struct MedicineRegistryV2.ResponsableTecnico",
+          "name": "responsableTecnico",
+          "type": "tuple"
         },
-        {
-          "internalType": "string",
-          "name": "fabricante",
-          "type": "string"
-        },
-        {
-          "internalType": "uint256",
-          "name": "fechaFabricacion",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "fechaCaducidad",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "propietario",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "fechaRegistro",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "fechaTransferencia",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bool",
-          "name": "existe",
-          "type": "bool"
-        }
+        { "internalType": "uint256", "name": "cantidad", "type": "uint256" }
       ],
       "stateMutability": "view",
       "type": "function"
     },
     {
       "inputs": [
+        { "internalType": "string", "name": "nombre", "type": "string" },
+        { "internalType": "string", "name": "fabricante", "type": "string" },
+        { "internalType": "uint256", "name": "fechaFabricacion", "type": "uint256" },
+        { "internalType": "uint256", "name": "fechaCaducidad", "type": "uint256" },
+        { "internalType": "string", "name": "serial", "type": "string" },
         {
-          "internalType": "string",
-          "name": "nombre",
-          "type": "string"
+          "components": [
+            { "internalType": "string", "name": "nombre", "type": "string" },
+            { "internalType": "string", "name": "dni", "type": "string" },
+            { "internalType": "string", "name": "telefono", "type": "string" },
+            { "internalType": "string", "name": "correo", "type": "string" }
+          ],
+          "internalType": "struct MedicineRegistryV2.ResponsableTecnico",
+          "name": "responsableTecnico",
+          "type": "tuple"
         },
-        {
-          "internalType": "string",
-          "name": "fabricante",
-          "type": "string"
-        },
-        {
-          "internalType": "uint256",
-          "name": "fechaFabricacion",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "fechaCaducidad",
-          "type": "uint256"
-        },
-        {
-          "internalType": "string",
-          "name": "serial",
-          "type": "string"
-        }
+        { "internalType": "uint256", "name": "cantidad", "type": "uint256" }
       ],
       "name": "registrarLote",
       "outputs": [
-        {
-          "internalType": "bytes32",
-          "name": "",
-          "type": "bytes32"
-        }
+        { "internalType": "bytes32", "name": "", "type": "bytes32" }
       ],
       "stateMutability": "nonpayable",
       "type": "function"
     },
     {
       "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "role",
-          "type": "bytes32"
-        },
+        { "internalType": "bytes32", "name": "role", "type": "bytes32" },
         {
           "internalType": "address",
-          "name": "account",
+          "name": "callerConfirmation",
           "type": "address"
         }
+      ],
+      "name": "renounceRole",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "bytes32", "name": "role", "type": "bytes32" },
+        { "internalType": "address", "name": "account", "type": "address" }
       ],
       "name": "revocarRol",
       "outputs": [],
@@ -314,25 +282,35 @@
     },
     {
       "inputs": [
-        {
-          "internalType": "bytes32",
-          "name": "loteId",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "address",
-          "name": "nuevoPropietario",
-          "type": "address"
-        }
+        { "internalType": "bytes32", "name": "role", "type": "bytes32" },
+        { "internalType": "address", "name": "account", "type": "address" }
+      ],
+      "name": "revokeRole",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "bytes4", "name": "interfaceId", "type": "bytes4" }
+      ],
+      "name": "supportsInterface",
+      "outputs": [
+        { "internalType": "bool", "name": "", "type": "bool" }
+      ],
+      "stateMutability": "view",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        { "internalType": "bytes32", "name": "loteId", "type": "bytes32" },
+        { "internalType": "address", "name": "nuevoPropietario", "type": "address" },
+        { "internalType": "uint256", "name": "cantidad", "type": "uint256" }
       ],
       "name": "transferirLote",
       "outputs": [],
       "stateMutability": "nonpayable",
       "type": "function"
     }
-  ],
-  "bytecode": "0x",
-  "deployedBytecode": "0x",
-  "linkReferences": {},
-  "deployedLinkReferences": {}
+  ]
 }

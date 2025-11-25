@@ -39,6 +39,8 @@ interface LotInfo {
   expDate: string;
   account: string;
   txHash: string;
+  quantity: string;
+  responsable: LegalData;
   transactionHash?: string;
 }
 function App() {
@@ -48,6 +50,9 @@ function App() {
   const [showPopup, setShowPopup] = useState(false);
   const [lastLotInfo, setLastLotInfo] = useState<LotInfo | null>(null);
   const [isRegistering, setIsRegistering] = useState(false);
+  const [registrationError, setRegistrationError] = useState<string | null>(
+    null
+  );
   const [activeTab, setActiveTab] = useState<NavTabId | null>(null);
   const [roleStatus, setRoleStatus] = useState<
     Record<ContractRoleKey, boolean>
@@ -75,7 +80,8 @@ function App() {
     mfgDate: "",
     expDate: "",
     healthReg: "",
-    
+    quantity: "",
+
   });
 
   const [legalData, setLegalData] = useState<LegalData>({
@@ -239,6 +245,22 @@ function App() {
     setLotData((prev) => ({ ...prev, seriesCode: code }));
   };
 
+  const parseEthersError = (error: unknown) => {
+    const err = error as { message?: string; reason?: string; shortMessage?: string } & {
+      error?: { message?: string };
+      info?: { error?: { message?: string } };
+    };
+
+    return (
+      err?.reason ||
+      err?.shortMessage ||
+      err?.error?.message ||
+      err?.info?.error?.message ||
+      err?.message ||
+      "Transacción cancelada o fallida."
+    );
+  };
+
   // registrar lote usando datos del formulario
   async function registrarLote() {
     if (!contract) return alert("Conecta tu wallet primero");
@@ -251,20 +273,58 @@ function App() {
       return;
     }
 
-    setIsRegistering(true);
-    try {
-      const mfg = Math.floor(mfgMs / 1000);
-      const exp = Math.floor(expMs / 1000);
+    setRegistrationError(null);
 
+    const mfg = Math.floor(mfgMs / 1000);
+    const exp = Math.floor(expMs / 1000);
+
+    const parsedQuantity = lotData.quantity.trim();
+    let quantityValue: bigint;
+    try {
+      quantityValue = BigInt(parsedQuantity);
+    } catch (error) {
+      const message = "Ingresa una cantidad válida para el lote.";
+      console.error(message, error);
+      setRegistrationError(message);
+      return;
+    }
+
+    if (quantityValue <= 0n) {
+      const message = "La cantidad debe ser mayor a cero.";
+      console.error(message);
+      setRegistrationError(message);
+      return;
+    }
+
+    const responsable = {
+      nombre: legalData.name.trim(),
+      dni: legalData.id.trim(),
+      telefono: legalData.phone.trim(),
+      correo: legalData.email.trim(),
+    };
+
+    if (!responsable.nombre || !responsable.dni) {
+      const message = "Completa los datos del responsable técnico.";
+      console.error(message);
+      setRegistrationError(message);
+      return;
+    }
+
+    setIsRegistering(true);
+
+    try {
       const tx = await contract.registrarLote(
         lotData.medicineName,
         lotData.activeIngredient,
         mfg,
         exp,
-        lotData.seriesCode
+        lotData.seriesCode,
+        responsable,
+        quantityValue
       );
 
-      await tx.wait();
+      const receipt = await tx.wait();
+      console.info("Registro de lote completado", { txHash: tx.hash, receipt });
 
       // Guarda la información del último lote registrado
       setLastLotInfo({
@@ -273,11 +333,16 @@ function App() {
         expDate: lotData.expDate,
         account: account,
         txHash: tx.hash,
+        quantity: lotData.quantity,
+        responsable: legalData,
       });
 
       setShowPopup(true); // Abrir el popup
+      setRegistrationError(null);
     } catch (err) {
-      console.error(err);
+      const message = parseEthersError(err);
+      console.error("Error al registrar lote:", err);
+      setRegistrationError(message);
       alert("Transacción cancelada o fallida.");
     } finally {
       setIsRegistering(false);
@@ -401,6 +466,15 @@ function App() {
                     />
                     <LegalForm data={legalData} onChange={handleLegalChange} />
                   </div>
+
+                  {registrationError && (
+                    <div className="rounded-2xl border border-red-100 bg-red-50/80 p-4 text-sm text-red-700">
+                      {registrationError}
+                      <span className="mt-1 block text-xs text-red-500">
+                        Revisa la consola del navegador para más detalles técnicos.
+                      </span>
+                    </div>
+                  )}
 
                   <div className="flex flex-col items-center gap-4 rounded-3xl border border-white/70 bg-white/80 p-6 text-center shadow-sm shadow-blue-100/60 backdrop-blur lg:flex-row lg:justify-between lg:text-left">
                     <p className="text-sm text-slate-500">
