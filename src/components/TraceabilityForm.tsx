@@ -17,7 +17,6 @@ interface LoteInfo {
   fabricante: string;
   mfgDate: number;
   expDate: number;
-  propietario: string;
   fechaRegistro: number;
   fechaTransferencia: number;
   responsableTecnico: {
@@ -27,6 +26,7 @@ interface LoteInfo {
     correo: string;
   };
   cantidad: number;
+  propietarios: Array<{ direccion: string; cantidad: number }>;
 }
 
 type TransferRecord = {
@@ -86,7 +86,7 @@ export default function TraceabilityForm({
         fabricante,
         mfgDate,
         expDate,
-        propietario,
+        propietarioActual,
         fechaRegistro,
         fechaTransferencia,
         existe,
@@ -104,7 +104,6 @@ export default function TraceabilityForm({
         fabricante,
         mfgDate: Number(mfgDate),
         expDate: Number(expDate),
-        propietario,
         fechaRegistro: Number(fechaRegistro),
         fechaTransferencia: Number(fechaTransferencia),
         responsableTecnico: {
@@ -114,6 +113,7 @@ export default function TraceabilityForm({
           correo: responsableTecnico?.correo ?? "",
         },
         cantidad: Number(cantidad),
+        propietarios: [],
       };
 
       setLoteInfo(loteData);
@@ -169,6 +169,9 @@ export default function TraceabilityForm({
         });
 
         const timelineRecords: TransferRecord[] = [];
+        const ownerBalances = new Map<string, number>();
+        const normalizeAddress = (address?: string) =>
+          address?.toLowerCase() ?? "";
         const registrationEvent = combinedEvents.find(
           (item) => item.type === "registro"
         )?.event;
@@ -180,23 +183,30 @@ export default function TraceabilityForm({
             cantidad?: bigint;
           };
           const propietarioRegistro =
-            args?.propietario ?? loteData.propietario;
+            args?.propietario ?? "";
           const fechaRegistroEvento =
             args?.fechaRegistro !== undefined
               ? Number(args.fechaRegistro)
               : loteData.fechaRegistro;
+          const cantidadRegistro =
+            args?.cantidad !== undefined
+              ? Number(args.cantidad)
+              : loteData.cantidad;
+
+          if (propietarioRegistro) {
+            ownerBalances.set(
+              normalizeAddress(propietarioRegistro),
+              cantidadRegistro
+            );
+          }
 
           timelineRecords.push({
             from: "Registro",
             to: propietarioRegistro,
             timestamp: fechaRegistroEvento,
             txHash: registrationEvent.transactionHash,
-            esActual:
-              propietarioRegistro?.toLowerCase() ===
-              loteData.propietario.toLowerCase(),
-            cantidad: args?.cantidad
-              ? Number(args.cantidad)
-              : loteData.cantidad,
+            esActual: false,
+            cantidad: cantidadRegistro,
           });
         }
 
@@ -211,34 +221,87 @@ export default function TraceabilityForm({
             cantidad?: bigint;
           };
           const toAddress = args?.nuevoPropietario ?? "";
+          const fromAddress = args?.propietarioAnterior ?? "";
+          const cantidadTransferida = args?.cantidad
+            ? Number(args.cantidad)
+            : 0;
 
           timelineRecords.push({
-            from: args?.propietarioAnterior ?? "",
+            from: fromAddress,
             to: toAddress,
             timestamp:
               args?.fechaTransferencia !== undefined
                 ? Number(args.fechaTransferencia)
                 : 0,
             txHash: item.event.transactionHash,
-            esActual:
-              !!toAddress &&
-              toAddress.toLowerCase() ===
-                loteData.propietario.toLowerCase(),
-            cantidad: args?.cantidad ? Number(args.cantidad) : undefined,
+            esActual: false,
+            cantidad: cantidadTransferida || undefined,
           });
+
+          if (fromAddress) {
+            const key = normalizeAddress(fromAddress);
+            const current = ownerBalances.get(key) ?? 0;
+            ownerBalances.set(key, Math.max(0, current - cantidadTransferida));
+          }
+
+          if (toAddress) {
+            const key = normalizeAddress(toAddress);
+            const current = ownerBalances.get(key) ?? 0;
+            ownerBalances.set(key, current + cantidadTransferida);
+          }
+        }
+
+        if (ownerBalances.size === 0 && propietarioActual) {
+          ownerBalances.set(
+            normalizeAddress(propietarioActual),
+            loteData.cantidad
+          );
         }
 
         if (timelineRecords.length === 0) {
           timelineRecords.push({
             from: "Registro",
-            to: loteData.propietario,
+            to: propietarioActual || "",
             timestamp: loteData.fechaRegistro,
             esActual: true,
             cantidad: loteData.cantidad,
           });
         }
 
-        setHistorial(timelineRecords);
+        const propietariosActuales = Array.from(ownerBalances.entries())
+          .filter(([, balance]) => balance > 0)
+          .map(([direccion, balance]) => ({
+            direccion,
+            cantidad: balance,
+          }));
+
+        const propietariosActualesSet = new Set(
+          propietariosActuales.map((item) => item.direccion.toLowerCase())
+        );
+
+        const timelineWithCurrent = timelineRecords.map((registro) => ({
+          ...registro,
+          esActual:
+            registro.to !== undefined &&
+            registro.to !== "" &&
+            propietariosActualesSet.has(normalizeAddress(registro.to)),
+        }));
+
+        setHistorial(timelineWithCurrent);
+        setLoteInfo((prev) => {
+          if (!prev) return prev;
+
+          const cantidadTotal = propietariosActuales.reduce(
+            (acc, item) => acc + item.cantidad,
+            0
+          );
+
+          return {
+            ...prev,
+            cantidad: cantidadTotal || prev.cantidad,
+            propietarios: propietariosActuales,
+          };
+        });
       } catch (timelineErr) {
         console.error(timelineErr);
         setTimelineError("No se pudo obtener la trazabilidad del lote.");
@@ -362,8 +425,26 @@ export default function TraceabilityForm({
                 <dd className="text-right text-slate-800">{formatDate(loteInfo.expDate)}</dd>
               </div>
               <div className="flex justify-between gap-4">
-                <dt className="font-medium text-slate-500">Propietario actual</dt>
-                <dd className="text-right text-slate-800 break-all">{loteInfo.propietario}</dd>
+                <dt className="font-medium text-slate-500">Propietarios actuales</dt>
+                <dd className="flex flex-col items-end gap-1 text-right text-slate-800 break-all">
+                  {loteInfo.propietarios.length === 0 ? (
+                    <span className="text-slate-500">Sin propietarios registrados</span>
+                  ) : (
+                    loteInfo.propietarios.map((propietario) => (
+                      <span
+                        key={propietario.direccion}
+                        className="inline-flex items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-700"
+                      >
+                        <span className="truncate" title={propietario.direccion}>
+                          {propietario.direccion}
+                        </span>
+                        <span className="rounded-full bg-white px-2 py-0.5 text-[11px] text-slate-500">
+                          {propietario.cantidad}
+                        </span>
+                      </span>
+                    ))
+                  )}
+                </dd>
               </div>
               <div className="flex justify-between gap-4">
                 <dt className="font-medium text-slate-500">Registro inicial</dt>
